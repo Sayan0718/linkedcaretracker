@@ -1,23 +1,9 @@
 import { NextResponse } from 'next/server';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
-
-let db: any = null;
-
-async function getDb() {
-  if (!db) {
-    db = await open({
-      filename: path.join(process.cwd(), 'database.sqlite'),
-      driver: sqlite3.Database
-    });
-  }
-  return db;
-}
+import { openDb } from '@/lib/db';
 
 export async function GET() {
   try {
-    const database = await getDb();
+    const database = await openDb();
     
     // Total Counts
     const { totalHospitals } = await database.get('SELECT COUNT(*) as totalHospitals FROM hospitals');
