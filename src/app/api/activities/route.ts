@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const hospitals = await db.all('SELECT id, name FROM hospitals');
     for (const h of hospitals) {
       let key = h.name.toLowerCase().replace(/[.,&]/g, '');
-      const words = key.split(/\s+/).filter(w => !['hospital', 'multispeciality', 'children', 'nursing', 'orthopaedic', 'maternity', 'healthcare', 'research', 'centre', 'trust', 'memorial', 'surgical', 'and', 'llp', 'care', 'home', 'laparoscopy', 'trauma', 'global', 'amreli', 'women'].includes(w));
+      const words = key.split(/\s+/).filter((w: string) => !['hospital', 'multispeciality', 'children', 'nursing', 'orthopaedic', 'maternity', 'healthcare', 'research', 'centre', 'trust', 'memorial', 'surgical', 'and', 'llp', 'care', 'home', 'laparoscopy', 'trauma', 'global', 'amreli', 'women'].includes(w));
       
       let matchKey = '';
       if (words.length > 0) {
