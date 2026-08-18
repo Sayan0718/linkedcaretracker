@@ -1,28 +1,71 @@
-import sqlite3 from 'sqlite3';
-import { open, Database } from 'sqlite';
-import path from 'path';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-let dbInstance: Database | null = null;
-
-// This function opens a connection to the database
-export async function openDb(): Promise<Database> {
-  if (dbInstance) {
-    return dbInstance;
+class D1Wrapper {
+  private db: any;
+  constructor(db: any) {
+    this.db = db;
   }
-  dbInstance = await open({
+  
+  async all(query: string, params: any[] = []) {
+    let stmt = this.db.prepare(query);
+    if (params.length > 0) {
+      stmt = stmt.bind(...params);
+    }
+    const res = await stmt.all();
+    return res.results;
+  }
+
+  async get(query: string, params: any[] = []) {
+    let stmt = this.db.prepare(query);
+    if (params.length > 0) {
+      stmt = stmt.bind(...params);
+    }
+    return await stmt.first();
+  }
+
+  async run(query: string, params: any[] = []) {
+    let stmt = this.db.prepare(query);
+    if (params.length > 0) {
+      stmt = stmt.bind(...params);
+    }
+    const res = await stmt.run();
+    return { lastID: res.meta?.last_row_id, changes: res.meta?.changes };
+  }
+  
+  async exec(query: string) {
+    const statements = query.split(';').map(s => s.trim()).filter(s => s.length > 0);
+    const batch = statements.map(s => this.db.prepare(s));
+    await this.db.batch(batch);
+  }
+}
+
+export async function openDb() {
+  try {
+    const ctx = await getCloudflareContext() as any;
+    if (ctx && ctx.env && ctx.env.DB) {
+      return new D1Wrapper(ctx.env.DB);
+    }
+  } catch (e) {
+    // Ignore error
+  }
+  
+  // Local fallback using dynamic import so Webpack doesn't crash Edge build
+  const sqlite3 = require('sqlite3');
+  const sqlite = require('sqlite');
+  const path = require('path');
+  
+  const db = await sqlite.open({
     filename: path.join(process.cwd(), 'database.sqlite'),
     driver: sqlite3.Database
   });
 
-  // Create tables if they don't exist
-  await dbInstance.exec(`
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS activities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       description TEXT NOT NULL,
       person TEXT NOT NULL
     );
-
     CREATE TABLE IF NOT EXISTS hospitals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -39,7 +82,6 @@ export async function openDb(): Promise<Database> {
       renewal_date TEXT,
       status TEXT
     );
-
     CREATE TABLE IF NOT EXISTS discussions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       hospital_id INTEGER NOT NULL,
@@ -48,6 +90,6 @@ export async function openDb(): Promise<Database> {
       FOREIGN KEY (hospital_id) REFERENCES hospitals (id)
     );
   `);
-
-  return dbInstance;
+  
+  return db;
 }

@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "linkedcaretracker",
+  "compatibility_date": "2026-08-18",
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "linkedcaretracker-db",
+      "database_id": "e4401040-c9dd-46c8-be2d-c7295e2d6ea7"
+    }
+  ]
+}
