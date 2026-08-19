@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openDb } from '../../../lib/db';
+import { openDb } from '../../../../lib/db';
 
 export const dynamic = 'force-dynamic';
 
