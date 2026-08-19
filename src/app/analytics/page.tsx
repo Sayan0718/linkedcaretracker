@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
       const res = await fetch('/api/hospitals');
       if (res.ok) {
         const allHospitals = await res.json();
-        const filtered = allHospitals.filter((h: any) => h.handled_by === personName);
+        const filtered = allHospitals.filter((h: any) => h.handled_by === personName && h.deboarded !== 'YES');
         setPersonHospitals(filtered);
       }
     } catch (error) {
