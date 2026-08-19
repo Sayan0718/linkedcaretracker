@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlusCircle, Calendar as CalendarIcon, User, AlignLeft, Filter, Edit2, Trash2, X } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, User, AlignLeft, Filter, Edit2, Trash2, X, Lock } from 'lucide-react';
 
 interface Activity {
   id: number;
@@ -24,6 +24,10 @@ export default function ActivityLogPage() {
   // Filter state
   const [filterDate, setFilterDate] = useState('');
   const [filterPerson, setFilterPerson] = useState('');
+
+  // Modal State
+  const [authModal, setAuthModal] = useState<{ isOpen: boolean, action: 'edit' | 'delete', targetId?: number, targetActivity?: Activity } | null>(null);
+  const [modalPassword, setModalPassword] = useState('');
 
   const persons = ['Sayan', 'Avnish', 'Monishkka'];
 
@@ -88,40 +92,64 @@ export default function ActivityLogPage() {
     }
   };
 
-  const handleEdit = (activity: Activity) => {
-    const pwd = prompt('Enter Admin Password to edit this activity:');
-    if (!pwd) return;
-
-    setAdminPassword(pwd);
-    setEditingId(activity.id);
-    setDate(activity.date);
-    setDescription(activity.description);
-    setPerson(activity.person);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const openEditModal = (activity: Activity) => {
+    // If they already entered the password this session, just proceed
+    if (adminPassword) {
+      setEditingId(activity.id);
+      setDate(activity.date);
+      setDescription(activity.description);
+      setPerson(activity.person);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setAuthModal({ isOpen: true, action: 'edit', targetActivity: activity });
+    }
   };
 
-  const handleDelete = async (id: number) => {
-    const pwd = prompt('Enter Admin Password to delete this activity:');
-    if (!pwd) return;
+  const openDeleteModal = (id: number) => {
+    setAuthModal({ isOpen: true, action: 'delete', targetId: id });
+  };
 
-    if (!confirm('Are you sure you want to delete this activity?')) return;
-    try {
-      const res = await fetch(`/api/activities/${id}`, { 
-        method: 'DELETE',
-        headers: { 'x-admin-password': pwd }
-      });
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authModal || !modalPassword) return;
+
+    setAdminPassword(modalPassword);
+
+    if (authModal.action === 'edit' && authModal.targetActivity) {
+      setEditingId(authModal.targetActivity.id);
+      setDate(authModal.targetActivity.date);
+      setDescription(authModal.targetActivity.description);
+      setPerson(authModal.targetActivity.person);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      if (res.status === 401) {
-        alert('Unauthorized: Incorrect Admin Password.');
+    } else if (authModal.action === 'delete' && authModal.targetId) {
+      if (!confirm('Are you sure you want to delete this activity?')) {
+        closeModal();
         return;
       }
-
-      if (res.ok) {
-        fetchActivities();
+      try {
+        const res = await fetch(`/api/activities/${authModal.targetId}`, { 
+          method: 'DELETE',
+          headers: { 'x-admin-password': modalPassword }
+        });
+        
+        if (res.status === 401) {
+          alert('Unauthorized: Incorrect Admin Password.');
+          setAdminPassword('');
+        } else if (res.ok) {
+          fetchActivities();
+        }
+      } catch (error) {
+        console.error('Error deleting activity:', error);
       }
-    } catch (error) {
-      console.error('Error deleting activity:', error);
     }
+
+    closeModal();
+  };
+
+  const closeModal = () => {
+    setAuthModal(null);
+    setModalPassword('');
   };
 
   const filteredActivities = activities.filter(activity => {
@@ -132,6 +160,56 @@ export default function ActivityLogPage() {
 
   return (
     <div>
+      {/* Auth Modal Overlay */}
+      {authModal && authModal.isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div style={{
+            background: 'var(--background)', padding: '32px', borderRadius: '12px',
+            width: '100%', maxWidth: '400px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            animation: 'slideUp 0.3s ease-out', position: 'relative'
+          }}>
+            <button onClick={closeModal} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <X size={20} />
+            </button>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ width: '48px', height: '48px', background: 'rgba(0, 102, 255, 0.1)', color: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
+                <Lock size={24} />
+              </div>
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Admin Access Required</h2>
+              <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                Please enter the admin password to {authModal.action} this log.
+              </p>
+            </div>
+            
+            <form onSubmit={handleAuthSubmit}>
+              <input 
+                type="password" 
+                autoFocus
+                placeholder="Enter password..." 
+                className="form-input" 
+                value={modalPassword}
+                onChange={(e) => setModalPassword(e.target.value)}
+                style={{ width: '100%', marginBottom: '16px', padding: '12px', fontSize: '1rem' }}
+                required
+              />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button type="button" onClick={closeModal} className="btn btn-secondary" style={{ flex: 1, padding: '10px' }}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '10px' }}>Unlock</button>
+              </div>
+            </form>
+          </div>
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+          `}</style>
+        </div>
+      )}
+
       <div className="page-header">
         <h1 className="page-title">Daily Activity Log</h1>
         <p className="page-subtitle">Track and view daily activities across the team.</p>
@@ -259,7 +337,7 @@ export default function ActivityLogPage() {
                           <button 
                             className="btn btn-secondary" 
                             style={{ padding: '6px' }} 
-                            onClick={() => handleEdit(activity)}
+                            onClick={() => openEditModal(activity)}
                             title="Edit"
                           >
                             <Edit2 size={14} />
@@ -267,7 +345,7 @@ export default function ActivityLogPage() {
                           <button 
                             className="btn btn-secondary" 
                             style={{ padding: '6px', color: 'var(--error)' }} 
-                            onClick={() => handleDelete(activity.id)}
+                            onClick={() => openDeleteModal(activity.id)}
                             title="Delete"
                           >
                             <Trash2 size={14} />

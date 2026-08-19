@@ -18,10 +18,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const db = await openDb();
+    
+    // Fetch old activity to update the linked discussion
+    const oldActivity = await db.get('SELECT date, description FROM activities WHERE id = ?', [id]);
+
     await db.run(
       'UPDATE activities SET date = ?, description = ?, person = ? WHERE id = ?',
       [date, description, person, id]
     );
+
+    // If there was a mapped discussion, update it too
+    if (oldActivity && oldActivity.description) {
+      await db.run(
+        'UPDATE discussions SET summary = ?, date = ? WHERE summary = ? AND date = ?',
+        [description, date, oldActivity.description, oldActivity.date]
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -39,7 +51,15 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const { id } = await params;
     const db = await openDb();
+    
+    const oldActivity = await db.get('SELECT date, description FROM activities WHERE id = ?', [id]);
+    
     await db.run('DELETE FROM activities WHERE id = ?', [id]);
+    
+    if (oldActivity && oldActivity.description) {
+      await db.run('DELETE FROM discussions WHERE summary = ? AND date = ?', [oldActivity.description, oldActivity.date]);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting activity:', error);
