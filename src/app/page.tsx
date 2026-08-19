@@ -16,6 +16,7 @@ export default function ActivityLogPage() {
   
   // Add form state
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [adminPassword, setAdminPassword] = useState('');
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
   const [person, setPerson] = useState('Sayan');
@@ -33,6 +34,7 @@ export default function ActivityLogPage() {
 
   const resetForm = () => {
     setEditingId(null);
+    setAdminPassword('');
     const today = new Date().toISOString().split('T')[0];
     setDate(today);
     setDescription('');
@@ -61,11 +63,21 @@ export default function ActivityLogPage() {
       const url = editingId ? `/api/activities/${editingId}` : '/api/activities';
       const method = editingId ? 'PUT' : 'POST';
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (editingId && adminPassword) {
+        headers['x-admin-password'] = adminPassword;
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ date, description, person })
       });
+
+      if (res.status === 401) {
+        alert('Unauthorized: Incorrect Admin Password.');
+        return;
+      }
 
       if (res.ok) {
         resetForm();
@@ -77,6 +89,10 @@ export default function ActivityLogPage() {
   };
 
   const handleEdit = (activity: Activity) => {
+    const pwd = prompt('Enter Admin Password to edit this activity:');
+    if (!pwd) return;
+
+    setAdminPassword(pwd);
     setEditingId(activity.id);
     setDate(activity.date);
     setDescription(activity.description);
@@ -85,9 +101,21 @@ export default function ActivityLogPage() {
   };
 
   const handleDelete = async (id: number) => {
+    const pwd = prompt('Enter Admin Password to delete this activity:');
+    if (!pwd) return;
+
     if (!confirm('Are you sure you want to delete this activity?')) return;
     try {
-      const res = await fetch(`/api/activities/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/activities/${id}`, { 
+        method: 'DELETE',
+        headers: { 'x-admin-password': pwd }
+      });
+      
+      if (res.status === 401) {
+        alert('Unauthorized: Incorrect Admin Password.');
+        return;
+      }
+
       if (res.ok) {
         fetchActivities();
       }
