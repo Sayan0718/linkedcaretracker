@@ -57,13 +57,23 @@ export async function GET() {
       value: stageCounts[key]
     })).filter(s => s.value > 0);
 
+    // Hospitals by Person
+    const hospitalsByPersonData = await database.all(
+      'SELECT handled_by, COUNT(*) as count FROM hospitals WHERE handled_by IS NOT NULL AND handled_by != \'\' GROUP BY handled_by ORDER BY count DESC'
+    );
+    const hospitalsByPerson = hospitalsByPersonData.map((d: any) => ({
+      name: d.handled_by,
+      count: d.count
+    }));
+
     return NextResponse.json({
       totalHospitals,
       totalActivities,
       totalDiscussions,
       expiringSoonCount,
       activitiesByPerson,
-      hospitalStages
+      hospitalStages,
+      hospitalsByPerson
     });
 
   } catch (error) {

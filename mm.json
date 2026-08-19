@@ -1,0 +1,188 @@
+[
+  {
+    "date": "Date",
+    "desc": "Work",
+    "remark": "Remarks"
+  },
+  {
+    "date": "2026-04-06",
+    "desc": "TRAINING/Hospital creation on Staging Server"
+  },
+  {
+    "date": "2026-04-20",
+    "desc": "Mahalaxim Doctor Training"
+  },
+  {
+    "date": "2026-04-21",
+    "desc": "Follow up on Wadhwa Hospital"
+  },
+  {
+    "date": "2026-04-22",
+    "desc": "Backend Creation for Wadhwa"
+  },
+  {
+    "date": "2026-04-23",
+    "desc": "Frontend Admin Training for Wadhwa , Holy Christ"
+  },
+  {
+    "date": "2026-04-24",
+    "desc": "Wadhwa Hospital Priscription Set"
+  },
+  {
+    "date": "2026-04-27",
+    "desc": "---"
+  },
+  {
+    "date": "2026-04-28",
+    "desc": "WFH"
+  },
+  {
+    "date": "2026-04-29",
+    "desc": "Leave"
+  },
+  {
+    "date": "2026-04-30",
+    "desc": "WFH"
+  },
+  {
+    "date": "2026-05-02",
+    "desc": "Lead Excel data"
+  },
+  {
+    "date": "2026-05-05",
+    "desc": "Cold Calling Leads / New Life Demo Coordination"
+  },
+  {
+    "date": "2026-05-06",
+    "desc": "WFH"
+  },
+  {
+    "date": "2026-05-07",
+    "desc": "Shree Anant Assistant/Doctor OPD training"
+  },
+  {
+    "date": "2026-05-08",
+    "desc": "WFH/Cold calling on 2-3 leads /Onboared Nulife"
+  },
+  {
+    "date": "2026-05-09",
+    "desc": "Nulife Onboarding form"
+  },
+  {
+    "date": "2026-05-12",
+    "desc": "Contacted Nulife but busy check on wednesday"
+  },
+  {
+    "date": "2026-05-13",
+    "desc": "WFH"
+  },
+  {
+    "date": "2026-05-14",
+    "desc": "Created Nulife Backend And Verified Doctor"
+  },
+  {
+    "date": "2026-05-15",
+    "desc": "WFH"
+  },
+  {
+    "date": "2026-05-16",
+    "desc": "Provide COC to Nulife, Shree Anant ENT Soap support"
+  },
+  {
+    "date": "2026-05-19",
+    "desc": "Billing training to star children, LNC App - Web Testing"
+  },
+  {
+    "date": "2026-05-20",
+    "desc": "WFH - Demo to Sanskar Hospital"
+  },
+  {
+    "date": "2026-05-21",
+    "desc": "Testing"
+  },
+  {
+    "date": "2026-05-22",
+    "desc": "WFH"
+  },
+  {
+    "date": "2026-05-23",
+    "desc": "Ayush Shandilya Mata Jatmai Hospital Panduka DEMO"
+  },
+  {
+    "date": "2026-05-26",
+    "desc": "Called Jharkhand Hospital and informed about QR and other govt mandate"
+  },
+  {
+    "date": "2026-05-27",
+    "desc": "WFH- cold calling , jatmai hospital hmis- pmjay help"
+  },
+  {
+    "date": "2026-05-28",
+    "desc": "Mata Jatmai Admin training and precription setup,Cold Calling"
+  },
+  {
+    "date": "2026-05-29",
+    "desc": "WFH - Cold calling, Mata Jatmai Doctor training, Shree Anant Doctor Consultation help and new doctor login"
+  },
+  {
+    "date": "2026-05-30",
+    "desc": "Video Review,Cold Calling,UI error nursing dashboard in app"
+  },
+  {
+    "date": "2026-05-31",
+    "desc": "Vinayak Hospital NHPR registration"
+  },
+  {
+    "date": "2026-06-01",
+    "desc": "Activity Log for 01-06-2026\n\n* Contacted the admin and did the Software linkage and backend setup for Vinayak hospital.\n* Enabled ABHA.\n* Confirmed the doctor details, verified and added them."
+  },
+  {
+    "date": "2026-06-02",
+    "desc": "Vinayak Backened Creation , ABHA Integration, Software Linkage",
+    "remark": "Activity Log – 02-06-2026\n\nConnected with Vinayak Hospital and completed the frontend admin setup. Assisted them in configuring wards, beds, and bed types, added and configured staff accounts, and guided them through the doctor license assignment process. Also created and configured the hospital's prescription template as per their requirements."
+  },
+  {
+    "date": "2026-06-03",
+    "desc": "Vinayak Frontend Setup and admin training",
+    "remark": "Activity Log - 03-06-2026\n\n- Coordinated with the Vinayak Hospital admin regarding arranging the training of other staff including doctors.\n- Conducted individual training sessions for doctors, nurses, and lab staff and Assisted them with their first-time login and account access."
+  },
+  {
+    "date": "2026-06-04",
+    "desc": "Vinayak Doctor, Nurse and Lab training",
+    "remark": "Activity Log -04-06-2026\n\n- Conducted Lab Module training for Mata Jatmai Hospital and informed the admin about the DHIS Scheme.\n\n- Connected with Nulife Hospital, Mata Jatmai Hospital, Shree Anant Hospital, Sweta Hospital and Indian Healthcare Hospital to collect feedback and provide information regarding the DHIS Scheme.\n\n- Attempted to contact Noor Hospital multiple times for the demo; the concerned person was unavailable. A formal follow-up message has been shared.\n\n- Reached out to Vinayak Hospital regarding training for remaining staff members; no availability today."
+  },
+  {
+    "date": "2026-06-05",
+    "desc": "Jatmai Lab Training, Feedbacks , Demo follow up for Noor Hospital",
+    "remark": "Activity Log -05-06-2026\n- Conducted Pharmacy training for Vinayak hospital explained the whole dashboard.\n- Assisted Miss Tomeshwari from Shree Anant Hospital in new Doctor first time login, created the new password and shared all the credentials.\n- Contacted Nulife and Sweta Hospital again for feedback - They are awaiting NABH registration.\n- Followed up Noor Hospital regarding Demo - still unavailable."
+  },
+  {
+    "date": "2026-06-06",
+    "desc": "feedback of nulife and sweta , Vinayak pharmacy training, demo follow up, tomeshwari dr login"
+  },
+  {
+    "date": "2026-06-07",
+    "desc": "DEMO SJ Healthcare"
+  },
+  {
+    "date": "2026-06-08",
+    "desc": "Activity Log – 08-06-2026\n\n- Conducted Software demo for SJ Healthcare and onboared the hospital , completed their software linkage and shared the onboarding form.\n- Checked the latest web version of the software and raised ticket in Zoho regarding LinkPad (iScribe) issue.\n- Followed up Noor Hospital regarding the demonstration and successfully conducted the demo.\n- Coordinated with Vinayak Hospital for billing module training."
+  },
+  {
+    "date": "2026-06-09",
+    "desc": "DEMO SJ Healthcare, Ticket for Linkpad (iscribe), Contacted Noor for Demo, Vinayak for billing training, SJ shared quote, bridged software",
+    "remark": "Activity Log – *09-06-2026\n\n- SJ Hospital – Backend Configuration, Admin Setup & Training\n- Successfully completed the backend configuration and initial system setup for SJ Hospital.\n- Conducted Admin Module training and provided a detailed walkthrough of the platform dashboard and key functionalities.\n- Verified the doctor, added the doctor to the system, and explained the Doctor Dashboard,including patient management workflows and ABHA creation process, also assisted in 1 patient entry.\n\n- Vinayak Hospital – Billing Head Training & Compliance Closure\n- Conducted comprehensive training for the Billing Head.\nAs the implementation, setup, and training activities have been successfully completed, the Compliance Certificate was shared with the hospital.\n- Noor Eye Hospital – Quotation Coordination"
+  },
+  {
+    "date": "2026-06-10",
+    "desc": "SJ backend , confirmation , verified doctor , vinayak billing training' sj admin training and setup and doctor training"
+  },
+  {
+    "date": "2026-06-16",
+    "desc": "SJ COC,Mata Jatmai Feedback , App Zoho tickets"
+  },
+  {
+    "date": "2026-06-17",
+    "desc": "WFH, tried DEMO, Ticket"
+  }
+]

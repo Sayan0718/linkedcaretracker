@@ -1,0 +1,1 @@
+const xlsx = require('xlsx'); const workbook = xlsx.readFile('MM.xlsx'); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const data = xlsx.utils.sheet_to_json(sheet, {header: 1}); console.log(data.filter(r => r.length > 0).slice(40, 80));
