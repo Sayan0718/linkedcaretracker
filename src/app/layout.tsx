@@ -22,10 +22,7 @@ export default function RootLayout({
         <div className="app-container">
           <aside className="sidebar">
             <div className="sidebar-logo">
-              <div className="logo-icon-container">
-                <Activity color="var(--primary)" size={24} strokeWidth={2.5} />
-              </div>
-              <span>LogTracker</span>
+              <img src="/logo.png" alt="LinkedCare" style={{ height: '28px', objectFit: 'contain' }} />
             </div>
             
             <nav className="nav-links">
