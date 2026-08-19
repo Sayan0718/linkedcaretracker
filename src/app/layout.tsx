@@ -22,7 +22,7 @@ export default function RootLayout({
         <div className="app-container">
           <aside className="sidebar">
             <div className="sidebar-logo">
-              <img src="/logo.png" alt="LinkedCare" style={{ height: '28px', objectFit: 'contain' }} />
+              <img src="/logo.png" alt="LinkedCare" style={{ height: '40px', objectFit: 'contain' }} />
             </div>
             
             <nav className="nav-links">
