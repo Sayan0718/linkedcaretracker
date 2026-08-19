@@ -29,7 +29,7 @@ export default function ActivityLogPage() {
   const [authModal, setAuthModal] = useState<{ isOpen: boolean, action: 'edit' | 'delete', targetId?: number, targetActivity?: Activity } | null>(null);
   const [modalPassword, setModalPassword] = useState('');
 
-  const persons = ['Sayan', 'Avnish', 'Monishkka'];
+  const persons = ['Sayan', 'Avnish', 'Monishkka', 'Dharmik'];
 
   useEffect(() => {
     fetchActivities();

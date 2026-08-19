@@ -195,6 +195,7 @@ export default function HospitalsPage() {
                 <option value="Sayan">Sayan</option>
                 <option value="Avnish">Avnish</option>
                 <option value="Monishkka">Monishkka</option>
+                <option value="Dharmik">Dharmik</option>
               </select>
             </div>
             <div className="form-group" style={{ gridColumn: 'span 3' }}>
@@ -373,6 +374,7 @@ export default function HospitalsPage() {
                           <option value="Sayan">Sayan</option>
                           <option value="Avnish">Avnish</option>
                           <option value="Monishkka">Monishkka</option>
+                          <option value="Dharmik">Dharmik</option>
                         </select>
                       </div>
                     </td>
