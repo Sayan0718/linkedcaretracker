@@ -165,13 +165,22 @@ export default function HospitalsPage() {
       });
 
       if (res.ok) {
+        setHospitals(prev => prev.map(h => h.id === deboardModal.id ? { 
+          ...h, 
+          deboarded: 'YES', 
+          deboard_reason: deboardReason, 
+          deboard_date: deboardDate || new Date().toISOString().split('T')[0] 
+        } : h));
         setDeboardModal(null);
         setDeboardReason('');
         setDeboardDate('');
-        fetchHospitals();
+      } else {
+        const errData = await res.text();
+        alert('Deboard failed: ' + errData);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deboarding hospital:', error);
+      alert('Deboard error: ' + error.message);
     }
   };
 
@@ -187,7 +196,14 @@ export default function HospitalsPage() {
           deboard_date: ''
         })
       });
-      if (res.ok) fetchHospitals();
+      if (res.ok) {
+        setHospitals(prev => prev.map(h => h.id === hospital.id ? { 
+          ...h, 
+          deboarded: 'NO', 
+          deboard_reason: '', 
+          deboard_date: '' 
+        } : h));
+      }
     } catch (error) {
       console.error('Error re-boarding hospital:', error);
     }
