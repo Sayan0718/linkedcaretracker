@@ -6,7 +6,7 @@ export async function GET() {
     const database = await openDb();
     
     // Total Counts
-    const { totalHospitals } = await database.get('SELECT COUNT(*) as totalHospitals FROM hospitals');
+    const { totalHospitals } = await database.get('SELECT COUNT(*) as totalHospitals FROM hospitals WHERE deboarded != \'YES\' OR deboarded IS NULL');
     const { totalActivities } = await database.get('SELECT COUNT(*) as totalActivities FROM activities');
     const { totalDiscussions } = await database.get('SELECT COUNT(*) as totalDiscussions FROM discussions');
 
@@ -18,7 +18,7 @@ export async function GET() {
     }));
 
     // Hospital Onboarding Stages
-    const hospitals = await database.all('SELECT software_linkage, backend_setup, frontend_setup, training, certificate_of_compliance, subscribed_till, renewed FROM hospitals');
+    const hospitals = await database.all('SELECT software_linkage, backend_setup, frontend_setup, training, certificate_of_compliance, subscribed_till, renewed FROM hospitals WHERE deboarded != \'YES\' OR deboarded IS NULL');
     
     const stageCounts: Record<string, number> = {
       'To do': 0,
@@ -59,7 +59,7 @@ export async function GET() {
 
     // Hospitals by Person
     const hospitalsByPersonData = await database.all(
-      'SELECT handled_by, COUNT(*) as count FROM hospitals WHERE handled_by IS NOT NULL AND handled_by != \'\' GROUP BY handled_by ORDER BY count DESC'
+      'SELECT handled_by, COUNT(*) as count FROM hospitals WHERE handled_by IS NOT NULL AND handled_by != \'\' AND (deboarded != \'YES\' OR deboarded IS NULL) GROUP BY handled_by ORDER BY count DESC'
     );
     const hospitalsByPerson = hospitalsByPersonData.map((d: any) => ({
       name: d.handled_by,

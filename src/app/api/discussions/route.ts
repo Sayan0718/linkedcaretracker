@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const params: any[] = [];
 
     if (hospital_id && date) {
-      query += ' WHERE hospital_id = ? AND date = ? ORDER BY id DESC LIMIT 1';
+      query += ' WHERE hospital_id = ? AND date = ? ORDER BY id DESC';
       params.push(hospital_id, date);
     } else if (hospital_id) {
       query += ' WHERE hospital_id = ? ORDER BY date DESC, id DESC';
