@@ -42,15 +42,25 @@ export async function POST(request: Request) {
 
       if (!matchKey) continue;
 
+      const normalizedDesc = description.toLowerCase().replace(/aa/g, 'a');
+      const normalizedMatchKey = matchKey.replace(/aa/g, 'a');
+
       // Escape key for regex
-      const escapedKey = matchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedKey = normalizedMatchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`\\b${escapedKey}\\b`, 'i');
       
-      if (regex.test(description)) {
-        await db.run(
-          'INSERT INTO discussions (hospital_id, date, summary) SELECT ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM discussions WHERE hospital_id = ? AND date = ? AND summary = ?)',
-          [h.id, date, description, h.id, date, description]
+      if (regex.test(normalizedDesc)) {
+        const existing = await db.get(
+          'SELECT 1 FROM discussions WHERE hospital_id = ? AND date = ? AND summary = ?',
+          [h.id, date, description]
         );
+        
+        if (!existing) {
+          await db.run(
+            'INSERT INTO discussions (hospital_id, date, summary) VALUES (?, ?, ?)',
+            [h.id, date, description]
+          );
+        }
         break; // Only map to the first matched hospital
       }
     }
