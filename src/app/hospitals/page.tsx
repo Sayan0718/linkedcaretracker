@@ -41,6 +41,8 @@ export default function HospitalsPage() {
   // Modal state
   const [editingHospital, setEditingHospital] = useState<Hospital | null>(null);
 
+  const [viewingHistory, setViewingHistory] = useState<Hospital | null>(null);
+
   useEffect(() => {
     fetchHospitals();
   }, []);
@@ -189,7 +191,7 @@ export default function HospitalsPage() {
         </div>
       )}
 
-      {/* Renewal Modal */}
+      {/* Renewal Edit Modal */}
       {editingHospital && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setEditingHospital(null) }}>
           <div className="modal-content">
@@ -258,6 +260,55 @@ export default function HospitalsPage() {
         </div>
       )}
 
+      {/* Renewal History View Modal */}
+      {viewingHistory && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setViewingHistory(null) }} style={{ animation: 'fadeIn 0.2s ease-out' }}>
+          <div className="modal-content" style={{ animation: 'slideUp 0.3s ease-out', maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HospitalIcon size={20} /> Renewal History</h3>
+              <button className="modal-close" onClick={() => setViewingHistory(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="modal-body" style={{ padding: '24px' }}>
+              <h4 style={{ margin: '0 0 20px 0', color: 'var(--primary)', fontSize: '1.1rem' }}>{viewingHistory.name}</h4>
+              
+              <div style={{ display: 'grid', gap: '16px' }}>
+                <div style={{ padding: '16px', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quote Sent Date</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>
+                    {viewingHistory.renewal_quotation_sent_date ? new Date(viewingHistory.renewal_quotation_sent_date).toLocaleDateString() : 'Not Sent Yet'}
+                  </div>
+                </div>
+
+                <div style={{ padding: '16px', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payment Received Date</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>
+                    {viewingHistory.renewal_date ? new Date(viewingHistory.renewal_date).toLocaleDateString() : 'Pending'}
+                  </div>
+                </div>
+
+                <div style={{ padding: '16px', background: 'rgba(0,102,255,0.05)', border: '1px solid rgba(0,102,255,0.2)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Current Subscribed Till</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                    {viewingHistory.subscribed_till ? new Date(viewingHistory.subscribed_till).toLocaleDateString() : 'N/A'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                <button className="btn btn-secondary" onClick={() => setViewingHistory(null)} style={{ width: '100%' }}>Close History</button>
+              </div>
+            </div>
+          </div>
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+          `}</style>
+        </div>
+      )}
+
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         {loading ? (
           <div style={{ padding: '24px', textAlign: 'center' }}>Loading...</div>
@@ -282,7 +333,15 @@ export default function HospitalsPage() {
                 filteredHospitals.map(h => (
                   <tr key={h.id}>
                     <td style={{ fontWeight: '600', maxWidth: '250px', whiteSpace: 'normal' }}>
-                      {h.name}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        {h.name}
+                        <button 
+                          onClick={() => setViewingHistory(h)}
+                          style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          Renewal History
+                        </button>
+                      </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 'normal', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         Handled by: 
                         <select 
