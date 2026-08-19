@@ -89,6 +89,14 @@ export async function openDb() {
       summary TEXT NOT NULL,
       FOREIGN KEY (hospital_id) REFERENCES hospitals (id)
     );
+    CREATE TABLE IF NOT EXISTS renewal_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      hospital_id INTEGER NOT NULL,
+      quote_date TEXT,
+      payment_date TEXT,
+      sub_till TEXT,
+      FOREIGN KEY (hospital_id) REFERENCES hospitals (id)
+    );
   `);
   
   return db;

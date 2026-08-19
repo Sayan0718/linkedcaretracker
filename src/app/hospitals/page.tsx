@@ -39,9 +39,9 @@ export default function HospitalsPage() {
   const [newHandledBy, setNewHandledBy] = useState('Sayan');
 
   // Modal state
-  const [editingHospital, setEditingHospital] = useState<Hospital | null>(null);
-
-  const [viewingHistory, setViewingHistory] = useState<Hospital | null>(null);
+  const [renewalModalFor, setRenewalModalFor] = useState<Hospital | null>(null);
+  const [renewals, setRenewals] = useState<any[]>([]);
+  const [editingRenewal, setEditingRenewal] = useState<any | null>(null);
 
   useEffect(() => {
     fetchHospitals();
@@ -58,6 +58,64 @@ export default function HospitalsPage() {
       console.error('Error fetching hospitals:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openRenewalModal = async (hospital: Hospital) => {
+    setRenewalModalFor(hospital);
+    setEditingRenewal(null);
+    try {
+      const res = await fetch(`/api/hospitals/${hospital.id}/renewals`);
+      if (res.ok) {
+        const data = await res.json();
+        setRenewals(data);
+      }
+    } catch (error) {
+      console.error('Error fetching renewals:', error);
+    }
+  };
+
+  const handleSaveRenewal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renewalModalFor || !editingRenewal) return;
+
+    try {
+      const url = editingRenewal.id 
+        ? `/api/hospitals/${renewalModalFor.id}/renewals/${editingRenewal.id}` 
+        : `/api/hospitals/${renewalModalFor.id}/renewals`;
+      
+      const method = editingRenewal.id ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote_date: editingRenewal.quote_date,
+          payment_date: editingRenewal.payment_date,
+          sub_till: editingRenewal.sub_till
+        })
+      });
+
+      if (res.ok) {
+        setEditingRenewal(null);
+        openRenewalModal(renewalModalFor); // Refresh list
+        fetchHospitals(); // Refresh main table
+      }
+    } catch (error) {
+      console.error('Error saving renewal:', error);
+    }
+  };
+
+  const handleDeleteRenewal = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this renewal record?')) return;
+    try {
+      const res = await fetch(`/api/hospitals/${renewalModalFor!.id}/renewals/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        openRenewalModal(renewalModalFor!);
+        fetchHospitals();
+      }
+    } catch (error) {
+      console.error('Error deleting renewal:', error);
     }
   };
 
@@ -96,32 +154,6 @@ export default function HospitalsPage() {
       }
     } catch (error) {
       console.error('Error adding hospital:', error);
-    }
-  };
-
-  const handleSaveRenewal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingHospital) return;
-
-    try {
-      const res = await fetch(`/api/hospitals/${editingHospital.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          renewal_quotation_sent: editingHospital.renewal_quotation_sent,
-          renewal_quotation_sent_date: editingHospital.renewal_quotation_sent_date,
-          renewed: editingHospital.renewed,
-          renewal_date: editingHospital.renewal_date,
-          subscribed_till: editingHospital.subscribed_till
-        })
-      });
-
-      if (res.ok) {
-        setEditingHospital(null);
-        fetchHospitals();
-      }
-    } catch (error) {
-      console.error('Error saving renewal:', error);
     }
   };
 
@@ -191,114 +223,101 @@ export default function HospitalsPage() {
         </div>
       )}
 
-      {/* Renewal Edit Modal */}
-      {editingHospital && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setEditingHospital(null) }}>
-          <div className="modal-content">
+      {/* Renewals Modal */}
+      {renewalModalFor && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setRenewalModalFor(null) }} style={{ animation: 'fadeIn 0.2s ease-out' }}>
+          <div className="modal-content" style={{ animation: 'slideUp 0.3s ease-out', maxWidth: '800px', width: '90%' }}>
             <div className="modal-header">
-              <h3>Renewal Settings: {editingHospital.name}</h3>
-              <button className="modal-close" onClick={() => setEditingHospital(null)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="modal-body">
-              <form onSubmit={handleSaveRenewal}>
-                <div className="form-group">
-                  <label className="form-label">Renewal Quote Sent?</label>
-                  <select className="form-select" 
-                    value={editingHospital.renewal_quotation_sent || 'NO'} 
-                    onChange={e => setEditingHospital({...editingHospital, renewal_quotation_sent: e.target.value})}>
-                    <option value="NO">NO</option>
-                    <option value="YES">YES</option>
-                  </select>
-                </div>
-
-                {editingHospital.renewal_quotation_sent === 'YES' && (
-                  <div className="form-group">
-                    <label className="form-label">Quote Sent Date</label>
-                    <input type="date" className="form-input" 
-                      value={editingHospital.renewal_quotation_sent_date?.split('T')[0] || ''} 
-                      onChange={e => setEditingHospital({...editingHospital, renewal_quotation_sent_date: e.target.value})} />
-                  </div>
-                )}
-
-                <div className="form-group">
-                  <label className="form-label">Payment Received?</label>
-                  <select className="form-select" 
-                    value={editingHospital.renewed || 'NO'} 
-                    onChange={e => setEditingHospital({...editingHospital, renewed: e.target.value})}>
-                    <option value="NO">NO</option>
-                    <option value="PENDING">PENDING</option>
-                    <option value="YES">YES</option>
-                  </select>
-                </div>
-
-                {editingHospital.renewed === 'YES' && (
-                  <div className="form-group">
-                    <label className="form-label">Payment Received Date</label>
-                    <input type="date" className="form-input" 
-                      value={editingHospital.renewal_date?.split('T')[0] || ''} 
-                      onChange={e => setEditingHospital({...editingHospital, renewal_date: e.target.value})} />
-                  </div>
-                )}
-
-                <div className="form-group mt-4">
-                  <label className="form-label">New Subscription End Date (Subscribed Till)</label>
-                  <input type="date" className="form-input" 
-                    value={editingHospital.subscribed_till?.split('T')[0] || ''} 
-                    onChange={e => setEditingHospital({...editingHospital, subscribed_till: e.target.value})} />
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setEditingHospital(null)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary"><Save size={18} /> Save Changes</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Renewal History View Modal */}
-      {viewingHistory && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setViewingHistory(null) }} style={{ animation: 'fadeIn 0.2s ease-out' }}>
-          <div className="modal-content" style={{ animation: 'slideUp 0.3s ease-out', maxWidth: '500px' }}>
-            <div className="modal-header">
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HospitalIcon size={20} /> Renewal History</h3>
-              <button className="modal-close" onClick={() => setViewingHistory(null)}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HospitalIcon size={20} /> Renewal History: {renewalModalFor.name}</h3>
+              <button className="modal-close" onClick={() => setRenewalModalFor(null)}>
                 <X size={20} />
               </button>
             </div>
             
             <div className="modal-body" style={{ padding: '24px' }}>
-              <h4 style={{ margin: '0 0 20px 0', color: 'var(--primary)', fontSize: '1.1rem' }}>{viewingHistory.name}</h4>
               
-              <div style={{ display: 'grid', gap: '16px' }}>
-                <div style={{ padding: '16px', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quote Sent Date</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                    {viewingHistory.renewal_quotation_sent_date ? new Date(viewingHistory.renewal_quotation_sent_date).toLocaleDateString() : 'Not Sent Yet'}
-                  </div>
+              {!editingRenewal ? (
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-primary" onClick={() => setEditingRenewal({})}>
+                    <Plus size={16} /> Add New Renewal Cycle
+                  </button>
                 </div>
-
-                <div style={{ padding: '16px', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payment Received Date</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                    {viewingHistory.renewal_date ? new Date(viewingHistory.renewal_date).toLocaleDateString() : 'Pending'}
-                  </div>
+              ) : (
+                <div className="card mb-4" style={{ backgroundColor: 'rgba(0,102,255,0.02)', border: '1px solid var(--border)' }}>
+                  <h4 style={{ margin: '0 0 16px 0' }}>{editingRenewal.id ? 'Edit Renewal Record' : 'New Renewal Record'}</h4>
+                  <form onSubmit={handleSaveRenewal} className="grid grid-cols-3 gap-4">
+                    <div className="form-group">
+                      <label className="form-label">Quote Sent Date</label>
+                      <input type="date" className="form-input" 
+                        value={editingRenewal.quote_date?.split('T')[0] || ''} 
+                        onChange={e => setEditingRenewal({...editingRenewal, quote_date: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Payment Received Date</label>
+                      <input type="date" className="form-input" 
+                        value={editingRenewal.payment_date?.split('T')[0] || ''} 
+                        onChange={e => setEditingRenewal({...editingRenewal, payment_date: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">New Subscription End Date</label>
+                      <input type="date" className="form-input" required
+                        value={editingRenewal.sub_till?.split('T')[0] || ''} 
+                        onChange={e => setEditingRenewal({...editingRenewal, sub_till: e.target.value})} />
+                    </div>
+                    <div className="form-group" style={{ gridColumn: 'span 3', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                      <button type="button" className="btn btn-secondary" onClick={() => setEditingRenewal(null)}>Cancel</button>
+                      <button type="submit" className="btn btn-primary"><Save size={16} /> Save Record</button>
+                    </div>
+                  </form>
                 </div>
+              )}
 
-                <div style={{ padding: '16px', background: 'rgba(0,102,255,0.05)', border: '1px solid rgba(0,102,255,0.2)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>Current Subscribed Till</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                    {viewingHistory.subscribed_till ? new Date(viewingHistory.subscribed_till).toLocaleDateString() : 'N/A'}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginTop: '24px', textAlign: 'center' }}>
-                <button className="btn btn-secondary" onClick={() => setViewingHistory(null)} style={{ width: '100%' }}>Close History</button>
+              <div className="table-container">
+                <table className="table" style={{ fontSize: '0.9rem' }}>
+                  <thead style={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
+                    <tr>
+                      <th>Quote Sent Date</th>
+                      <th>Payment Received Date</th>
+                      <th>Subscribed Till</th>
+                      <th style={{ textAlign: 'center', width: '100px' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {renewals.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                          No renewal history recorded yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      renewals.map(r => (
+                        <tr key={r.id}>
+                          <td>{r.quote_date ? new Date(r.quote_date).toLocaleDateString() : 'N/A'}</td>
+                          <td>{r.payment_date ? new Date(r.payment_date).toLocaleDateString() : 'N/A'}</td>
+                          <td style={{ fontWeight: '600', color: 'var(--primary)' }}>{r.sub_till ? new Date(r.sub_till).toLocaleDateString() : 'N/A'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                              <button 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px' }} 
+                                onClick={() => setEditingRenewal(r)}
+                              >
+                                <Edit3 size={14} />
+                              </button>
+                              <button 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px', color: 'var(--error)' }} 
+                                onClick={() => handleDeleteRenewal(r.id)}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -335,12 +354,6 @@ export default function HospitalsPage() {
                     <td style={{ fontWeight: '600', maxWidth: '250px', whiteSpace: 'normal' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         {h.name}
-                        <button 
-                          onClick={() => setViewingHistory(h)}
-                          style={{ padding: '2px 8px', fontSize: '0.75rem', borderRadius: '4px', backgroundColor: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
-                        >
-                          Renewal History
-                        </button>
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 'normal', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         Handled by: 
@@ -356,7 +369,7 @@ export default function HospitalsPage() {
                       </div>
                     </td>
                     
-                    <td>
+                    <td style={{ fontWeight: '600', color: 'var(--primary)' }}>
                       {h.subscribed_till ? new Date(h.subscribed_till).toLocaleDateString() : 'N/A'}
                     </td>
 
@@ -384,8 +397,8 @@ export default function HospitalsPage() {
                     <td>
                       <button 
                         className="btn btn-secondary" 
-                        onClick={() => setEditingHospital(h)}
-                        title="Edit Renewal Settings"
+                        onClick={() => openRenewalModal(h)}
+                        title="Manage Renewals"
                       >
                         <Edit3 size={16} /> Renewals
                       </button>
