@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlusCircle, Calendar as CalendarIcon, User, AlignLeft, Filter } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, User, AlignLeft, Filter, Edit2, Trash2, X } from 'lucide-react';
 
 interface Activity {
   id: number;
@@ -15,6 +15,7 @@ export default function ActivityLogPage() {
   const [loading, setLoading] = useState(true);
   
   // Add form state
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
   const [person, setPerson] = useState('Sayan');
@@ -27,9 +28,16 @@ export default function ActivityLogPage() {
 
   useEffect(() => {
     fetchActivities();
+    resetForm();
+  }, []);
+
+  const resetForm = () => {
+    setEditingId(null);
     const today = new Date().toISOString().split('T')[0];
     setDate(today);
-  }, []);
+    setDescription('');
+    setPerson('Sayan');
+  };
 
   const fetchActivities = async () => {
     try {
@@ -50,18 +58,41 @@ export default function ActivityLogPage() {
     if (!date || !description || !person) return;
 
     try {
-      const res = await fetch('/api/activities', {
-        method: 'POST',
+      const url = editingId ? `/api/activities/${editingId}` : '/api/activities';
+      const method = editingId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date, description, person })
       });
 
       if (res.ok) {
-        setDescription(''); 
+        resetForm();
         fetchActivities(); 
       }
     } catch (error) {
-      console.error('Error adding activity:', error);
+      console.error('Error saving activity:', error);
+    }
+  };
+
+  const handleEdit = (activity: Activity) => {
+    setEditingId(activity.id);
+    setDate(activity.date);
+    setDescription(activity.description);
+    setPerson(activity.person);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this activity?')) return;
+    try {
+      const res = await fetch(`/api/activities/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchActivities();
+      }
+    } catch (error) {
+      console.error('Error deleting activity:', error);
     }
   };
 
@@ -80,7 +111,14 @@ export default function ActivityLogPage() {
 
       <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 2fr', alignItems: 'start' }}>
         <div className="card">
-          <h2 style={{ marginBottom: '16px', fontSize: '1.25rem' }}>Add New Activity</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{editingId ? 'Edit Activity' : 'Add New Activity'}</h2>
+            {editingId && (
+              <button onClick={resetForm} className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', background: 'transparent', color: 'var(--text-muted)' }}>
+                <X size={16} /> Cancel
+              </button>
+            )}
+          </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -108,8 +146,8 @@ export default function ActivityLogPage() {
             </div>
 
             <button type="submit" className="btn btn-primary w-full mt-4">
-              <PlusCircle size={18} />
-              Add Activity
+              {editingId ? <Edit2 size={18} /> : <PlusCircle size={18} />}
+              {editingId ? 'Update Activity' : 'Add Activity'}
             </button>
           </form>
         </div>
@@ -165,6 +203,7 @@ export default function ActivityLogPage() {
                     <th>Date</th>
                     <th>Person</th>
                     <th>Description</th>
+                    <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -187,6 +226,26 @@ export default function ActivityLogPage() {
                         </div>
                       </td>
                       <td style={{ color: 'var(--text-muted)' }}>{activity.description}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{ padding: '6px' }} 
+                            onClick={() => handleEdit(activity)}
+                            title="Edit"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{ padding: '6px', color: 'var(--error)' }} 
+                            onClick={() => handleDelete(activity.id)}
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
