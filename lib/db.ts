@@ -80,7 +80,10 @@ export async function openDb() {
       renewal_quotation_sent_date TEXT,
       renewed TEXT,
       renewal_date TEXT,
-      status TEXT
+      status TEXT,
+      deboarded TEXT DEFAULT 'NO',
+      deboard_reason TEXT,
+      deboard_date TEXT
     );
     CREATE TABLE IF NOT EXISTS discussions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

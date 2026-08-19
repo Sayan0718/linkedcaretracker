@@ -12,7 +12,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       'name', 'subscribed_till', 'handled_by', 'software_linkage',
       'backend_setup', 'frontend_setup', 'training', 'certificate_of_compliance',
       'renewal_quotation_sent', 'renewal_quotation_sent_date', 'renewed',
-      'renewal_date', 'status'
+      'renewal_date', 'status', 'deboarded', 'deboard_reason', 'deboard_date'
     ];
 
     const updates: string[] = [];
