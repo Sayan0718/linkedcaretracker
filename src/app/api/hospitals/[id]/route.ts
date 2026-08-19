@@ -37,6 +37,28 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       values
     );
 
+    // Automatically sync to renewal_history table!
+    if (body.subscribed_till || body.renewal_date || body.renewal_quotation_sent_date) {
+      // Get the current row to ensure we have all 3 fields even if only 1 was updated
+      const current = await db.get('SELECT subscribed_till, renewal_date, renewal_quotation_sent_date FROM hospitals WHERE id = ?', [id]);
+      
+      if (current && current.subscribed_till) {
+        const existing = await db.get('SELECT id FROM renewal_history WHERE hospital_id = ? AND sub_till = ?', [id, current.subscribed_till]);
+        
+        if (existing) {
+          await db.run(
+            'UPDATE renewal_history SET quote_date = ?, payment_date = ? WHERE id = ?',
+            [current.renewal_quotation_sent_date || null, current.renewal_date || null, existing.id]
+          );
+        } else {
+          await db.run(
+            'INSERT INTO renewal_history (hospital_id, quote_date, payment_date, sub_till) VALUES (?, ?, ?, ?)',
+            [id, current.renewal_quotation_sent_date || null, current.renewal_date || null, current.subscribed_till]
+          );
+        }
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating hospital:', error);

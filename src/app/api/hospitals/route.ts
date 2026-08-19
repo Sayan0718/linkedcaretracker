@@ -4,13 +4,7 @@ import { openDb } from '../../../../lib/db';
 export async function GET() {
   try {
     const db = await openDb();
-    const hospitals = await db.all(`
-      SELECT h.*, 
-             (SELECT quote_date FROM renewal_history WHERE hospital_id = h.id ORDER BY id DESC LIMIT 1) as quote_date,
-             (SELECT payment_date FROM renewal_history WHERE hospital_id = h.id ORDER BY id DESC LIMIT 1) as payment_date
-      FROM hospitals h 
-      ORDER BY h.name ASC
-    `);
+    const hospitals = await db.all('SELECT * FROM hospitals ORDER BY name ASC');
     return NextResponse.json(hospitals);
   } catch (error) {
     console.error('Error fetching hospitals:', error);
