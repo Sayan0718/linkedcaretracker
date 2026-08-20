@@ -30,6 +30,11 @@ export async function POST(request: Request) {
         'INSERT INTO users (email, password, role) VALUES (?, ?, ?)',
         [email, hashedPassword, role]
       );
+      
+      const userEmail = request.headers.get('x-user-email') || 'unknown';
+      const { logAudit } = await import('../../../../lib/audit');
+      await logAudit(userEmail, 'ADD_USER', { target_email: email, role });
+
       return NextResponse.json({ id: result.lastID, email, role }, { status: 201 });
     } catch (err: any) {
       if (err.message.includes('UNIQUE constraint failed')) {

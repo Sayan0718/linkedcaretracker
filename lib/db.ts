@@ -106,6 +106,13 @@ export async function openDb() {
       password TEXT NOT NULL,
       role TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      action TEXT NOT NULL,
+      details TEXT,
+      timestamp TEXT NOT NULL
+    );
   `);
   
   return db;

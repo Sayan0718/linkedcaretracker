@@ -65,6 +65,10 @@ export async function POST(request: Request) {
       }
     }
     
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../lib/audit');
+    await logAudit(userEmail, 'ADD_ACTIVITY', { date, person, description });
+    
     return NextResponse.json({ id: result.lastID, date, description, person }, { status: 201 });
   } catch (error) {
     console.error('Error saving activity:', error);

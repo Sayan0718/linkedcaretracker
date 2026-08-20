@@ -32,6 +32,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     values.push(id);
 
     const db = await openDb();
+    const oldHospital = await db.get('SELECT * FROM hospitals WHERE id = ?', [id]);
+
     await db.run(
       `UPDATE hospitals SET ${updates.join(', ')} WHERE id = ?`,
       values
@@ -58,6 +60,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         }
       }
     }
+
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../../lib/audit');
+    await logAudit(userEmail, 'UPDATE_HOSPITAL', { id, hospitalName: oldHospital?.name, updates: body });
 
     return NextResponse.json({ success: true });
   } catch (error) {

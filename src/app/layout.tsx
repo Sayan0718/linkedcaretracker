@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 import { cookies, headers } from 'next/headers'
 import { verifySession } from '../../lib/auth'
-import { LogOut, Users } from 'lucide-react'
+import { LogOut, Users, ClipboardList } from 'lucide-react'
 import LogoutButton from './components/LogoutButton'
 
 export default async function RootLayout({
@@ -70,10 +70,16 @@ export default async function RootLayout({
                 <span>Analytics</span>
               </Link>
               {role === 'admin' && (
-                <Link href="/users" className="nav-item">
-                  <Users size={18} strokeWidth={2} />
-                  <span>Users</span>
-                </Link>
+                <>
+                  <Link href="/users" className="nav-item">
+                    <Users size={18} strokeWidth={2} />
+                    <span>Users</span>
+                  </Link>
+                  <Link href="/audit" className="nav-item">
+                    <ClipboardList size={18} strokeWidth={2} />
+                    <span>Audit Logs</span>
+                  </Link>
+                </>
               )}
             </nav>
             

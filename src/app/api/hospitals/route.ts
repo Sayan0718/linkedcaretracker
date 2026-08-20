@@ -30,6 +30,10 @@ export async function POST(request: Request) {
       [name, subscribed_till || '', handled_by || '', 'To do', 'To do', 'To do', 'To do', 'To do', 'Onboarded']
     );
     
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../lib/audit');
+    await logAudit(userEmail, 'ADD_HOSPITAL', { name, subscribed_till, handled_by });
+
     return NextResponse.json({ id: result.lastID, name }, { status: 201 });
   } catch (error) {
     console.error('Error adding hospital:', error);

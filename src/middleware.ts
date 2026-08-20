@@ -31,12 +31,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // Frontend route protection for admin-only pages
+  if (sessionPayload && path === '/audit' && sessionPayload.role !== 'admin') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   // RBAC for APIs
   if (path.startsWith('/api/') && !isPublicPath && sessionPayload) {
     const role = sessionPayload.role as string;
     
-    // Only admin can access /api/users
-    if (path.startsWith('/api/users') && role !== 'admin') {
+    // Only admin can access /api/users and /api/audit
+    if ((path.startsWith('/api/users') || path.startsWith('/api/audit')) && role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

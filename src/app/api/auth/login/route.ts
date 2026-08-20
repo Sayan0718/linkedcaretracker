@@ -3,6 +3,8 @@ import { openDb } from '../../../../../lib/db';
 import { verifyPassword, createSession } from '../../../../../lib/auth';
 import { cookies } from 'next/headers';
 
+import { logAudit } from '../../../../../lib/audit';
+
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
@@ -39,6 +41,9 @@ export async function POST(request: Request) {
       path: '/',
       maxAge: 60 * 60 * 24 // 24 hours
     });
+
+    // Log action
+    await logAudit(user.email, 'LOGIN', { role: user.role });
 
     return NextResponse.json({ 
       success: true, 

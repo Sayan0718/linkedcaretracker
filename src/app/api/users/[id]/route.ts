@@ -14,6 +14,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
 
     await db.run('DELETE FROM users WHERE id = ?', [id]);
+    
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../../lib/audit');
+    await logAudit(userEmail, 'DELETE_USER', { target_email: user?.email });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting user:', error);

@@ -5,11 +5,6 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Sayan@2026';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const authHeader = request.headers.get('x-admin-password');
-    if (authHeader !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
     const { date, description, person } = await request.json();
 
@@ -20,7 +15,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const db = await openDb();
     
     // Fetch old activity to update the linked discussion
-    const oldActivity = await db.get('SELECT date, description FROM activities WHERE id = ?', [id]);
+    const oldActivity = await db.get('SELECT date, description, person FROM activities WHERE id = ?', [id]);
 
     await db.run(
       'UPDATE activities SET date = ?, description = ?, person = ? WHERE id = ?',
@@ -34,6 +29,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         [description, date, oldActivity.description, oldActivity.date]
       );
     }
+    
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../../lib/audit');
+    await logAudit(userEmail, 'UPDATE_ACTIVITY', { id, oldActivity, newActivity: { date, description, person } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -44,21 +43,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const authHeader = request.headers.get('x-admin-password');
-    if (authHeader !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
     const db = await openDb();
     
-    const oldActivity = await db.get('SELECT date, description FROM activities WHERE id = ?', [id]);
+    const oldActivity = await db.get('SELECT date, description, person FROM activities WHERE id = ?', [id]);
     
     await db.run('DELETE FROM activities WHERE id = ?', [id]);
     
     if (oldActivity && oldActivity.description) {
       await db.run('DELETE FROM discussions WHERE summary = ? AND date = ?', [oldActivity.description, oldActivity.date]);
     }
+    
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../../lib/audit');
+    await logAudit(userEmail, 'DELETE_ACTIVITY', { id, oldActivity });
 
     return NextResponse.json({ success: true });
   } catch (error) {

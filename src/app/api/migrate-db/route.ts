@@ -12,7 +12,8 @@ export async function GET() {
       "ALTER TABLE hospitals ADD COLUMN deboarded TEXT DEFAULT 'NO'",
       "ALTER TABLE hospitals ADD COLUMN deboard_reason TEXT",
       "ALTER TABLE hospitals ADD COLUMN deboard_date TEXT",
-      "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL)"
+      "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL)",
+      "CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_email TEXT NOT NULL, action TEXT NOT NULL, details TEXT, timestamp TEXT NOT NULL)"
     ];
 
     const results = [];

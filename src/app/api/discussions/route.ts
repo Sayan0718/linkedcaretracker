@@ -42,6 +42,10 @@ export async function POST(request: Request) {
       [hospital_id, date, summary]
     );
     
+    const userEmail = request.headers.get('x-user-email') || 'unknown';
+    const { logAudit } = await import('../../../../lib/audit');
+    await logAudit(userEmail, 'ADD_DISCUSSION', { hospital_id, date, summary });
+
     return NextResponse.json({ id: result.lastID, hospital_id, date, summary }, { status: 201 });
   } catch (error) {
     console.error('Error saving discussion:', error);
