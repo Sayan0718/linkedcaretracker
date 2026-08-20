@@ -100,6 +100,12 @@ export async function openDb() {
       sub_till TEXT,
       FOREIGN KEY (hospital_id) REFERENCES hospitals (id)
     );
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL
+    );
   `);
   
   return db;

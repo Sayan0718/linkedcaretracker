@@ -25,9 +25,20 @@ export default function DiscussionsPage() {
   const [newDiscussionDate, setNewDiscussionDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [userRole, setUserRole] = useState('viewer');
 
   useEffect(() => {
-    fetchHospitals();
+    const init = async () => {
+      try {
+        const userRes = await fetch('/api/auth/me');
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUserRole(userData.user?.role || 'viewer');
+        }
+      } catch (e) {}
+      await fetchHospitals();
+    };
+    init();
     const today = new Date().toISOString().split('T')[0];
     setNewDiscussionDate(today);
   }, []);
@@ -147,7 +158,7 @@ export default function DiscussionsPage() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ margin: 0 }}>Discussion History</h3>
-            {selectedHospital && (
+            {selectedHospital && userRole !== 'viewer' && (
               <button className="btn btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
                 <Plus size={16} /> Add Discussion
               </button>

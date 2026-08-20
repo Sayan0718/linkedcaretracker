@@ -11,7 +11,8 @@ export async function GET() {
     const migrations = [
       "ALTER TABLE hospitals ADD COLUMN deboarded TEXT DEFAULT 'NO'",
       "ALTER TABLE hospitals ADD COLUMN deboard_reason TEXT",
-      "ALTER TABLE hospitals ADD COLUMN deboard_date TEXT"
+      "ALTER TABLE hospitals ADD COLUMN deboard_date TEXT",
+      "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL)"
     ];
 
     const results = [];
@@ -24,6 +25,26 @@ export async function GET() {
         // "duplicate column name" or "SQLITE_ERROR: duplicate column name"
         results.push({ sql, status: 'skipped/error', message: err.message });
       }
+    }
+
+    // Seed initial users if they don't exist
+    // password for sam is sam@123 (hashed), operations is linked@123 (hashed)
+    const { hashPassword } = await import('../../../../lib/auth');
+    const samHash = await hashPassword('sam@123');
+    const opsHash = await hashPassword('linked@123');
+
+    try {
+      await db.run('INSERT INTO users (email, password, role) VALUES (?, ?, ?)', ['sam@linkedcare.com', samHash, 'admin']);
+      results.push({ sql: 'Seed sam@linkedcare.com', status: 'success' });
+    } catch (err: any) {
+      results.push({ sql: 'Seed sam@linkedcare.com', status: 'skipped/error', message: err.message });
+    }
+
+    try {
+      await db.run('INSERT INTO users (email, password, role) VALUES (?, ?, ?)', ['operations@linkedcare.com', opsHash, 'editor']);
+      results.push({ sql: 'Seed operations@linkedcare.com', status: 'success' });
+    } catch (err: any) {
+      results.push({ sql: 'Seed operations@linkedcare.com', status: 'skipped/error', message: err.message });
     }
 
     return NextResponse.json({ 

@@ -34,6 +34,7 @@ const STAGE_OPTIONS = [
 export default function HospitalsPage() {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string>('viewer');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'active' | 'deboarded'>('active');
   
@@ -68,7 +69,17 @@ export default function HospitalsPage() {
   };
 
   useEffect(() => {
-    fetchHospitals();
+    const init = async () => {
+      try {
+        const userRes = await fetch('/api/auth/me');
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUserRole(userData.user?.role || 'viewer');
+        }
+      } catch (e) {}
+      await fetchHospitals();
+    };
+    init();
   }, []);
 
   const fetchHospitals = async () => {
@@ -248,9 +259,11 @@ export default function HospitalsPage() {
               style={{ paddingLeft: '38px', width: '250px' }}
             />
           </div>
-          <button className="btn btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
-            <Plus size={18} /> Add Hospital
-          </button>
+          {userRole !== 'viewer' && (
+            <button className="btn btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
+              <Plus size={18} /> Add Hospital
+            </button>
+          )}
         </div>
       </div>
 
@@ -529,6 +542,7 @@ export default function HospitalsPage() {
                           Handled by: 
                           <select 
                             value={h.handled_by || 'Sayan'} 
+                            disabled={userRole !== 'admin'}
                             onChange={(e) => handleStageChange(h.id, 'handled_by', e.target.value)}
                             style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px', padding: '2px 4px', fontSize: '0.8rem', outline: 'none', background: 'transparent' }}
                           >
@@ -553,6 +567,7 @@ export default function HospitalsPage() {
                               value={h[field as keyof Hospital] as string || 'To do'}
                               onChange={(e) => handleStageChange(h.id, field, e.target.value)}
                               style={{ border: 'none', cursor: 'pointer', outline: 'none', maxWidth: '200px' }}
+                              disabled={userRole !== 'admin'}
                               title={field.replace('_', ' ')}
                             >
                               {STAGE_OPTIONS.map(opt => (
@@ -566,23 +581,25 @@ export default function HospitalsPage() {
                       </td>
 
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <button 
-                            className="btn btn-secondary" 
-                            onClick={() => setEditingHospital(h)}
-                            title="Edit Renewal Settings"
-                          >
-                            <Edit3 size={16} /> Renewals
-                          </button>
-                          <button 
-                            className="btn btn-secondary" 
-                            onClick={() => { setDeboardModal(h); setDeboardReason(''); setDeboardDate(''); }}
-                            title="Deboard Hospital"
-                            style={{ color: 'var(--danger)' }}
-                          >
-                            <UserMinus size={16} /> Deboard
-                          </button>
-                        </div>
+                        {userRole === 'admin' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <button 
+                              className="btn btn-secondary" 
+                              onClick={() => setEditingHospital(h)}
+                              title="Edit Renewal Settings"
+                            >
+                              <Edit3 size={16} /> Renewals
+                            </button>
+                            <button 
+                              className="btn btn-secondary" 
+                              onClick={() => { setDeboardModal(h); setDeboardReason(''); setDeboardDate(''); }}
+                              title="Deboard Hospital"
+                              style={{ color: 'var(--danger)' }}
+                            >
+                              <UserMinus size={16} /> Deboard
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -626,14 +643,16 @@ export default function HospitalsPage() {
                         {h.deboard_reason || 'No reason provided'}
                       </td>
                       <td>
-                        <button 
-                          className="btn btn-secondary" 
-                          onClick={() => handleReboard(h)}
-                          title="Re-activate Hospital"
-                          style={{ color: 'var(--success)' }}
-                        >
-                          <RotateCcw size={16} /> Re-activate
-                        </button>
+                        {userRole === 'admin' && (
+                          <button 
+                            className="btn btn-secondary" 
+                            onClick={() => handleReboard(h)}
+                            title="Re-activate Hospital"
+                            style={{ color: 'var(--success)' }}
+                          >
+                            <RotateCcw size={16} /> Re-activate
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

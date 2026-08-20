@@ -11,11 +11,34 @@ export const metadata: Metadata = {
   description: 'Manage daily activity logs, hospital onboarding stages, and discussions.',
 }
 
-export default function RootLayout({
+import { cookies, headers } from 'next/headers'
+import { verifySession } from '../lib/auth'
+import { LogOut, Users } from 'lucide-react'
+import LogoutButton from './components/LogoutButton'
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('session')
+  const session = sessionCookie ? await verifySession(sessionCookie.value) : null
+
+  // If no session (e.g. login page), don't render sidebar
+  if (!session) {
+    return (
+      <html lang="en" className={inter.className}>
+        <body>
+          {children}
+        </body>
+      </html>
+    )
+  }
+
+  const role = session.role as string;
+  const email = session.email as string;
+
   return (
     <html lang="en" className={inter.className}>
       <body>
@@ -46,15 +69,24 @@ export default function RootLayout({
                 <BarChart2 size={18} strokeWidth={2} />
                 <span>Analytics</span>
               </Link>
+              {role === 'admin' && (
+                <Link href="/users" className="nav-item">
+                  <Users size={18} strokeWidth={2} />
+                  <span>Users</span>
+                </Link>
+              )}
             </nav>
             
             <div className="sidebar-footer">
-              <div className="user-profile">
-                <div className="avatar">A</div>
-                <div className="user-info">
-                  <span className="user-name">Admin User</span>
-                  <span className="user-role">Workspace Owner</span>
+              <div className="user-profile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="avatar">{email.charAt(0).toUpperCase()}</div>
+                  <div className="user-info">
+                    <span className="user-name" style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{email.split('@')[0]}</span>
+                    <span className="user-role" style={{ textTransform: 'capitalize' }}>{role}</span>
+                  </div>
                 </div>
+                <LogoutButton />
               </div>
             </div>
           </aside>

@@ -29,11 +29,23 @@ export default function ActivityLogPage() {
   const [authModal, setAuthModal] = useState<{ isOpen: boolean, action: 'edit' | 'delete', targetId?: number, targetActivity?: Activity } | null>(null);
   const [modalPassword, setModalPassword] = useState('');
 
+  const [userRole, setUserRole] = useState('viewer');
+
   const persons = ['Sayan', 'Avnish', 'Monishkka', 'Dharmik'];
 
   useEffect(() => {
-    fetchActivities();
-    resetForm();
+    const init = async () => {
+      try {
+        const userRes = await fetch('/api/auth/me');
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUserRole(userData.user?.role || 'viewer');
+        }
+      } catch (e) {}
+      await fetchActivities();
+      resetForm();
+    };
+    init();
   }, []);
 
   const resetForm = () => {
@@ -215,9 +227,10 @@ export default function ActivityLogPage() {
         <p className="page-subtitle">Track and view daily activities across the team.</p>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 2fr', alignItems: 'start' }}>
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: userRole === 'viewer' ? '1fr' : '1fr 2fr', alignItems: 'start' }}>
+        {userRole !== 'viewer' && (
+          <div className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{editingId ? 'Edit Activity' : 'Add New Activity'}</h2>
             {editingId && (
               <button onClick={resetForm} className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', background: 'transparent', color: 'var(--text-muted)' }}>
@@ -257,6 +270,7 @@ export default function ActivityLogPage() {
             </button>
           </form>
         </div>
+        )}
 
         <div className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           
@@ -309,7 +323,7 @@ export default function ActivityLogPage() {
                     <th>Date</th>
                     <th>Person</th>
                     <th>Description</th>
-                    <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+                    {userRole === 'admin' && <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -332,26 +346,28 @@ export default function ActivityLogPage() {
                         </div>
                       </td>
                       <td style={{ color: 'var(--text-muted)' }}>{activity.description}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button 
-                            className="btn btn-secondary" 
-                            style={{ padding: '6px' }} 
-                            onClick={() => openEditModal(activity)}
-                            title="Edit"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button 
-                            className="btn btn-secondary" 
-                            style={{ padding: '6px', color: 'var(--error)' }} 
-                            onClick={() => openDeleteModal(activity.id)}
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
+                      {userRole === 'admin' && (
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '6px' }} 
+                              onClick={() => openEditModal(activity)}
+                              title="Edit"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '6px', color: 'var(--error)' }} 
+                              onClick={() => openDeleteModal(activity.id)}
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
