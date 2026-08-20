@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 }
 
 import { cookies, headers } from 'next/headers'
-import { verifySession } from '../lib/auth'
+import { verifySession } from '../../lib/auth'
 import { LogOut, Users } from 'lucide-react'
 import LogoutButton from './components/LogoutButton'
 
