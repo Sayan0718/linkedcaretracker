@@ -35,7 +35,6 @@ export async function POST(request: Request) {
 
     const hospitals = await db.all('SELECT id, name FROM hospitals');
     const insertedIds = [];
-    let lastMatchedHospitalId: number | null = null;
 
     for (const description of validActivities) {
       const result = await db.run(
@@ -45,24 +44,7 @@ export async function POST(request: Request) {
       insertedIds.push(result.lastID);
 
       const { matchAndCreateDiscussion } = await import('../../../../../lib/hospital-matcher');
-      const matchedId = await matchAndCreateDiscussion(date, description);
-      
-      if (matchedId) {
-        lastMatchedHospitalId = matchedId;
-      } else if (lastMatchedHospitalId) {
-        // If no explicit match but we have a previous match in this bulk session, map it to the same hospital
-        const existing = await db.get(
-          'SELECT 1 FROM discussions WHERE hospital_id = ? AND date = ? AND summary = ?',
-          [lastMatchedHospitalId, date, description]
-        );
-        
-        if (!existing) {
-          await db.run(
-            'INSERT INTO discussions (hospital_id, date, summary) VALUES (?, ?, ?)',
-            [lastMatchedHospitalId, date, description]
-          );
-        }
-      }
+      await matchAndCreateDiscussion(date, description);
       
       await logAudit(userEmail, 'ADD_ACTIVITY', { date, person, description, source: 'bulk' });
     }
