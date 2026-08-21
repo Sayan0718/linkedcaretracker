@@ -71,36 +71,54 @@ export default function ActivityLogPage() {
     }
   };
 
+  const [bulkMode, setBulkMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !description || !person) return;
+    setIsSubmitting(true);
 
     try {
-      const url = editingId ? `/api/activities/${editingId}` : '/api/activities';
-      const method = editingId ? 'PUT' : 'POST';
+      if (bulkMode && !editingId) {
+        const res = await fetch('/api/activities/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, person, text: description })
+        });
+        if (res.ok) {
+          resetForm();
+          fetchActivities();
+        }
+      } else {
+        const url = editingId ? `/api/activities/${editingId}` : '/api/activities';
+        const method = editingId ? 'PUT' : 'POST';
 
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (editingId && adminPassword) {
-        headers['x-admin-password'] = adminPassword;
-      }
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (editingId && adminPassword) {
+          headers['x-admin-password'] = adminPassword;
+        }
 
-      const res = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify({ date, description, person })
-      });
+        const res = await fetch(url, {
+          method,
+          headers,
+          body: JSON.stringify({ date, description, person })
+        });
 
-      if (res.status === 401) {
-        alert('Unauthorized: Incorrect Admin Password.');
-        return;
-      }
+        if (res.status === 401) {
+          alert('Unauthorized: Incorrect Admin Password.');
+          return;
+        }
 
-      if (res.ok) {
-        resetForm();
-        fetchActivities(); 
+        if (res.ok) {
+          resetForm();
+          fetchActivities(); 
+        }
       }
     } catch (error) {
       console.error('Error saving activity:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -231,12 +249,24 @@ export default function ActivityLogPage() {
         {userRole !== 'viewer' && (
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{editingId ? 'Edit Activity' : 'Add New Activity'}</h2>
-            {editingId && (
-              <button onClick={resetForm} className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', background: 'transparent', color: 'var(--text-muted)' }}>
-                <X size={16} /> Cancel
-              </button>
-            )}
+            <h2 style={{ fontSize: '1.25rem', margin: 0 }}>{editingId ? 'Edit Activity' : (bulkMode ? 'Bulk Import AI Logs' : 'Add New Activity')}</h2>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingId && (
+                <button 
+                  type="button"
+                  onClick={() => { setBulkMode(!bulkMode); setDescription(''); }} 
+                  className="btn btn-secondary" 
+                  style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                >
+                  {bulkMode ? 'Single Entry' : 'Bulk Import'}
+                </button>
+              )}
+              {editingId && (
+                <button onClick={resetForm} className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', background: 'transparent', color: 'var(--text-muted)' }}>
+                  <X size={16} /> Cancel
+                </button>
+              )}
+            </div>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -259,14 +289,21 @@ export default function ActivityLogPage() {
 
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlignLeft size={16} /> Activity Description
+                <AlignLeft size={16} /> {bulkMode ? 'Paste AI Activity Logs' : 'Activity Description'}
               </label>
-              <textarea className="form-textarea" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What was done today?" required />
+              <textarea 
+                className="form-textarea" 
+                rows={bulkMode ? 10 : 4} 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                placeholder={bulkMode ? "Paste your ChatGPT generated logs here...\n\nExample:\n1. Coordinated with Dr. Ashaka...\n2. Connected with Girish Bhai..." : "What was done today?"} 
+                required 
+              />
             </div>
 
-            <button type="submit" className="btn btn-primary w-full mt-4">
+            <button type="submit" className="btn btn-primary w-full mt-4" disabled={isSubmitting}>
               {editingId ? <Edit2 size={18} /> : <PlusCircle size={18} />}
-              {editingId ? 'Update Activity' : 'Add Activity'}
+              {isSubmitting ? 'Saving...' : (editingId ? 'Update Activity' : (bulkMode ? 'Import Logs' : 'Add Activity'))}
             </button>
           </form>
         </div>
