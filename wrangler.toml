@@ -1,0 +1,12 @@
+name = "activity"
+compatibility_date = "2026-08-15"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "linkedcaretracker-db"
+database_id = "e4401040-c9dd-46c8-be2d-c7295e2d6ea7"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "activity"
