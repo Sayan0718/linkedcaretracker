@@ -48,6 +48,18 @@ export async function matchAndCreateDiscussion(date: string, description: string
     }
   }
 
+  // Hardcoded rule for Kashiba
+  const descLower = description.toLowerCase();
+  if (descLower.includes('kashiba')) {
+    if (descLower.includes('kamrej')) {
+      const kashibaKamrej = hospitals.find((h: any) => h.name === 'Kashiba Multispeciality Hospital');
+      if (kashibaKamrej) bestMatch = kashibaKamrej;
+    } else {
+      const kashibaAmreli = hospitals.find((h: any) => h.name === 'Kashiba Multispeciality Hospital, Amreli');
+      if (kashibaAmreli) bestMatch = kashibaAmreli;
+    }
+  }
+
   if (bestMatch) {
     const existing = await db.get(
       'SELECT 1 FROM discussions WHERE hospital_id = ? AND date = ? AND summary = ?',
