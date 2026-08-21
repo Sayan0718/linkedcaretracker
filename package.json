@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "if [ -z \"$OPENNEXT_BUILD_ACTIVE\" ]; then export OPENNEXT_BUILD_ACTIVE=1; npm run build:next && npx opennextjs-cloudflare build; else npm run build:next; fi",
+    "build": "echo 'Build skipped to prevent loop'",
     "build:next": "next build",
+    "postinstall": "npm run build:next && npx opennextjs-cloudflare build",
     "start": "next start",
     "lint": "eslint"
   },
