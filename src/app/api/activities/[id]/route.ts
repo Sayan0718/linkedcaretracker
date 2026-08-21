@@ -22,14 +22,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       [date, description, person, id]
     );
 
-    // If there was a mapped discussion, update it too
+    // If there was a mapped discussion, delete it
     if (oldActivity && oldActivity.description) {
       await db.run(
-        'UPDATE discussions SET summary = ?, date = ? WHERE summary = ? AND date = ?',
-        [description, date, oldActivity.description, oldActivity.date]
+        'DELETE FROM discussions WHERE summary = ? AND date = ?',
+        [oldActivity.description, oldActivity.date]
       );
     }
     
+    // Auto-map the new description
+    const { matchAndCreateDiscussion } = await import('../../../../../lib/hospital-matcher');
+    await matchAndCreateDiscussion(date, description);
     const userEmail = request.headers.get('x-user-email') || 'unknown';
     const { logAudit } = await import('../../../../../lib/audit');
     await logAudit(userEmail, 'UPDATE_ACTIVITY', { id, oldActivity, newActivity: { date, description, person } });
