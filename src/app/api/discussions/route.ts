@@ -42,7 +42,14 @@ export async function POST(request: Request) {
       [hospital_id, date, summary]
     );
     
+    // Create linked activity since it was manually added from discussions page
+    // Default person to "System" or the current user's email if possible
     const userEmail = request.headers.get('x-user-email') || 'unknown';
+    await db.run(
+      'INSERT INTO activities (date, description, person) VALUES (?, ?, ?)',
+      [date, summary, userEmail]
+    );
+    
     const { logAudit } = await import('../../../../lib/audit');
     await logAudit(userEmail, 'ADD_DISCUSSION', { hospital_id, date, summary });
 

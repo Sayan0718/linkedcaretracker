@@ -25,7 +25,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     // If there was a mapped discussion, delete it
     if (oldActivity && oldActivity.description) {
       await db.run(
-        'DELETE FROM discussions WHERE summary = ? AND date = ?',
+        'DELETE FROM discussions WHERE trim(summary) = trim(?) AND date = ?',
         [oldActivity.description, oldActivity.date]
       );
     }
@@ -54,7 +54,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     await db.run('DELETE FROM activities WHERE id = ?', [id]);
     
     if (oldActivity && oldActivity.description) {
-      await db.run('DELETE FROM discussions WHERE summary = ? AND date = ?', [oldActivity.description, oldActivity.date]);
+      await db.run('DELETE FROM discussions WHERE trim(summary) = trim(?) AND date = ?', [oldActivity.description, oldActivity.date]);
     }
     
     const userEmail = request.headers.get('x-user-email') || 'unknown';

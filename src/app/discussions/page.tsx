@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Save, Calendar, MessageSquare, Plus } from 'lucide-react';
+import { Search, Save, Calendar, MessageSquare, Plus, Trash2 } from 'lucide-react';
 
 interface Hospital {
   id: number;
@@ -109,6 +109,18 @@ export default function DiscussionsPage() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this discussion and its associated activity log?')) return;
+    try {
+      const res = await fetch(`/api/discussions/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchDiscussions();
+      }
+    } catch (error) {
+      console.error('Error deleting discussion:', error);
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
@@ -211,9 +223,21 @@ export default function DiscussionsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {discussions.map(disc => (
                 <div key={disc.id} style={{ padding: '16px', backgroundColor: 'var(--background)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
-                    <Calendar size={14} />
-                    {new Date(disc.date).toLocaleDateString()}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <Calendar size={14} />
+                      {new Date(disc.date).toLocaleDateString()}
+                    </div>
+                    {userRole !== 'viewer' && (
+                      <button 
+                        className="btn btn-secondary" 
+                        style={{ padding: '4px 8px', color: '#ef4444', borderColor: 'transparent' }}
+                        onClick={() => handleDelete(disc.id)}
+                        title="Delete Discussion"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                   <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{disc.summary}</p>
                 </div>
