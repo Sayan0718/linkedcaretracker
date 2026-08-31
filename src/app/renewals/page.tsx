@@ -13,6 +13,9 @@ interface Hospital {
   renewal_quotation_sent_date: string;
   renewed: string;
   renewal_date: string;
+  deboarded?: string;
+  deboard_reason?: string;
+  deboard_date?: string;
 }
 
 export default function RenewalsPage() {
@@ -64,6 +67,30 @@ export default function RenewalsPage() {
     }
   };
 
+  const handleDidNotRenew = async () => {
+    if (!editingHospital) return;
+    if (!confirm('Are you sure you want to mark this hospital as "Didn\'t Renew"? This will automatically move them to the Deboarded Hospitals section.')) return;
+
+    try {
+      const res = await fetch(`/api/hospitals/${editingHospital.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deboarded: 'YES',
+          deboard_reason: 'Did not renew',
+          deboard_date: new Date().toISOString()
+        })
+      });
+
+      if (res.ok) {
+        setEditingHospital(null);
+        fetchHospitals();
+      }
+    } catch (error) {
+      console.error('Error marking as did not renew:', error);
+    }
+  };
+
   const today = new Date();
   const twoWeeksFromNow = new Date();
   twoWeeksFromNow.setDate(today.getDate() + 14);
@@ -71,6 +98,7 @@ export default function RenewalsPage() {
   // Filter hospitals that have a subscribed_till date, and it's within the next 2 weeks or already expired
   const upcomingRenewals = hospitals.filter(h => {
     if (!h.subscribed_till) return false;
+    if (h.deboarded === 'YES') return false;
     const subDate = new Date(h.subscribed_till);
     return subDate <= twoWeeksFromNow;
   }).sort((a, b) => new Date(a.subscribed_till).getTime() - new Date(b.subscribed_till).getTime());
@@ -145,9 +173,19 @@ export default function RenewalsPage() {
                     onChange={e => setEditingHospital({...editingHospital, subscribed_till: e.target.value})} />
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setEditingHospital(null)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary"><Save size={18} /> Save Changes</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    style={{ color: 'var(--danger)', borderColor: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '6px' }} 
+                    onClick={handleDidNotRenew}
+                  >
+                    <AlertTriangle size={16} /> Didn't Renew (Deboard)
+                  </button>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setEditingHospital(null)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary"><Save size={18} /> Save Changes</button>
+                  </div>
                 </div>
               </form>
             </div>

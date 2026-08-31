@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Hospital as HospitalIcon, Plus, Save, Edit3, X, Search, UserMinus, RotateCcw } from 'lucide-react';
+import { Hospital as HospitalIcon, Plus, Save, Edit3, X, Search, UserMinus, RotateCcw, AlertTriangle } from 'lucide-react';
 
 interface Hospital {
   id: number;
@@ -157,6 +157,30 @@ export default function HospitalsPage() {
       }
     } catch (error) {
       console.error('Error saving renewal:', error);
+    }
+  };
+
+  const handleDidNotRenew = async () => {
+    if (!editingHospital) return;
+    if (!confirm('Are you sure you want to mark this hospital as "Didn\'t Renew"? This will automatically move them to the Deboarded Hospitals section.')) return;
+
+    try {
+      const res = await fetch(`/api/hospitals/${editingHospital.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deboarded: 'YES',
+          deboard_reason: 'Did not renew',
+          deboard_date: new Date().toISOString()
+        })
+      });
+
+      if (res.ok) {
+        setEditingHospital(null);
+        fetchHospitals();
+      }
+    } catch (error) {
+      console.error('Error marking as did not renew:', error);
     }
   };
 
@@ -356,9 +380,19 @@ export default function HospitalsPage() {
                     onChange={e => setEditingHospital({...editingHospital, subscribed_till: e.target.value})} />
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setEditingHospital(null)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary"><Save size={18} /> Save Changes</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    style={{ color: 'var(--danger)', borderColor: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '6px' }} 
+                    onClick={handleDidNotRenew}
+                  >
+                    <AlertTriangle size={16} /> Didn't Renew (Deboard)
+                  </button>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setEditingHospital(null)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary"><Save size={18} /> Save Changes</button>
+                  </div>
                 </div>
               </form>
             </div>
