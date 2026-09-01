@@ -6,6 +6,7 @@ import { Hospital as HospitalIcon, Plus, Save, Edit3, X, Search, UserMinus, Rota
 interface Hospital {
   id: number;
   name: string;
+  starting_date?: string;
   subscribed_till: string;
   handled_by: string;
   software_linkage: string;
@@ -40,6 +41,7 @@ export default function HospitalsPage() {
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
+  const [newStartingDate, setNewStartingDate] = useState('');
   const [newSubscribedTill, setNewSubscribedTill] = useState('');
   const [newHandledBy, setNewHandledBy] = useState('Sayan');
 
@@ -119,6 +121,7 @@ export default function HospitalsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newName,
+          starting_date: newStartingDate,
           subscribed_till: newSubscribedTill,
           handled_by: newHandledBy
         })
@@ -126,6 +129,7 @@ export default function HospitalsPage() {
       if (res.ok) {
         setShowAddForm(false);
         setNewName('');
+        setNewStartingDate('');
         setNewSubscribedTill('');
         fetchHospitals();
       }
@@ -143,6 +147,7 @@ export default function HospitalsPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          starting_date: editingHospital.starting_date,
           renewal_quotation_sent: editingHospital.renewal_quotation_sent,
           renewal_quotation_sent_date: editingHospital.renewal_quotation_sent_date,
           renewed: editingHospital.renewed,
@@ -294,10 +299,14 @@ export default function HospitalsPage() {
       {showAddForm && (
         <div className="card mb-4" style={{ backgroundColor: 'var(--background)' }}>
           <h3 style={{ marginBottom: '16px' }}>Add New Hospital</h3>
-          <form onSubmit={handleAddHospital} className="grid grid-cols-3 gap-4">
+          <form onSubmit={handleAddHospital} className="grid grid-cols-4 gap-4">
             <div className="form-group">
               <label className="form-label">Hospital Name</label>
               <input className="form-input" value={newName} onChange={e => setNewName(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Starting Date</label>
+              <input type="date" className="form-input" value={newStartingDate} onChange={e => setNewStartingDate(e.target.value)} />
             </div>
             <div className="form-group">
               <label className="form-label">Subscribed Till</label>
@@ -312,7 +321,7 @@ export default function HospitalsPage() {
                 <option value="Dharmik">Dharmik</option>
               </select>
             </div>
-            <div className="form-group" style={{ gridColumn: 'span 3' }}>
+            <div className="form-group" style={{ gridColumn: 'span 4' }}>
               <button type="submit" className="btn btn-primary" style={{ width: 'fit-content' }}>
                 <Save size={18} /> Save Hospital
               </button>
@@ -372,6 +381,13 @@ export default function HospitalsPage() {
                       onChange={e => setEditingHospital({...editingHospital, renewal_date: e.target.value})} />
                   </div>
                 )}
+
+                <div className="form-group mt-4">
+                  <label className="form-label">Starting Date</label>
+                  <input type="date" className="form-input" 
+                    value={editingHospital.starting_date?.split('T')[0] || ''} 
+                    onChange={e => setEditingHospital({...editingHospital, starting_date: e.target.value})} />
+                </div>
 
                 <div className="form-group mt-4">
                   <label className="form-label">New Subscription End Date (Subscribed Till)</label>
@@ -547,6 +563,7 @@ export default function HospitalsPage() {
               <thead style={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
                 <tr>
                   <th>Hospital Name</th>
+                  <th>Starting Date</th>
                   <th>Subscribed Till</th>
                   <th>Stages (SW / BE / FE / TR / CC)</th>
                   <th>Actions</th>
@@ -589,6 +606,9 @@ export default function HospitalsPage() {
                       </td>
                       
                       <td>
+                        {h.starting_date ? new Date(h.starting_date).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td>
                         {h.subscribed_till ? new Date(h.subscribed_till).toLocaleDateString() : 'N/A'}
                       </td>
 
@@ -615,8 +635,8 @@ export default function HospitalsPage() {
                       </td>
 
                       <td>
-                        {userRole === 'admin' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {(userRole === 'admin' || userRole === 'editor') && (
                             <button 
                               className="btn btn-secondary" 
                               onClick={() => setEditingHospital(h)}
@@ -624,6 +644,8 @@ export default function HospitalsPage() {
                             >
                               <Edit3 size={16} /> Renewals
                             </button>
+                          )}
+                          {userRole === 'admin' && (
                             <button 
                               className="btn btn-secondary" 
                               onClick={() => { setDeboardModal(h); setDeboardReason(''); setDeboardDate(''); }}
@@ -632,8 +654,8 @@ export default function HospitalsPage() {
                             >
                               <UserMinus size={16} /> Deboard
                             </button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -655,6 +677,7 @@ export default function HospitalsPage() {
                 <tr>
                   <th>Hospital Name</th>
                   <th>Handled By</th>
+                  <th>Starting Date</th>
                   <th>Deboarded On</th>
                   <th>Reason</th>
                   <th>Action</th>
@@ -672,6 +695,7 @@ export default function HospitalsPage() {
                     <tr key={h.id}>
                       <td style={{ fontWeight: 600 }}>{h.name}</td>
                       <td>{h.handled_by || 'N/A'}</td>
+                      <td>{h.starting_date ? new Date(h.starting_date).toLocaleDateString() : 'N/A'}</td>
                       <td>{h.deboard_date ? new Date(h.deboard_date).toLocaleDateString() : 'N/A'}</td>
                       <td style={{ maxWidth: '300px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                         {h.deboard_reason || 'No reason provided'}

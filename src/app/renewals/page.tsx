@@ -7,6 +7,7 @@ import Link from 'next/link';
 interface Hospital {
   id: number;
   name: string;
+  starting_date?: string;
   subscribed_till: string;
   handled_by: string;
   renewal_quotation_sent: string;
@@ -50,6 +51,7 @@ export default function RenewalsPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          starting_date: editingHospital.starting_date,
           renewal_quotation_sent: editingHospital.renewal_quotation_sent,
           renewal_quotation_sent_date: editingHospital.renewal_quotation_sent_date,
           renewed: editingHospital.renewed,
@@ -165,6 +167,13 @@ export default function RenewalsPage() {
                       onChange={e => setEditingHospital({...editingHospital, renewal_date: e.target.value})} />
                   </div>
                 )}
+
+                <div className="form-group mt-4">
+                  <label className="form-label">Starting Date</label>
+                  <input type="date" className="form-input" 
+                    value={editingHospital.starting_date?.split('T')[0] || ''} 
+                    onChange={e => setEditingHospital({...editingHospital, starting_date: e.target.value})} />
+                </div>
 
                 <div className="form-group mt-4">
                   <label className="form-label">New Subscription End Date (Subscribed Till)</label>
