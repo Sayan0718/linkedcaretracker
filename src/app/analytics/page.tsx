@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
               </button>
             </div>
             
-            <div className="modal-body" style={{ padding: '24px' }}>
+            <div className="modal-body" style={{ padding: '24px', maxHeight: '70vh', overflowY: 'auto' }}>
               {loadingHospitals ? (
                 <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>Loading...</div>
               ) : (
