@@ -40,7 +40,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     );
 
     // Automatically sync to renewal_history table!
-    if (body.subscribed_till || body.renewal_date || body.renewal_quotation_sent_date) {
+    if (!body.skip_renewal_history && (body.subscribed_till || body.renewal_date || body.renewal_quotation_sent_date)) {
       // Get the current row to ensure we have all 3 fields even if only 1 was updated
       const current = await db.get('SELECT subscribed_till, renewal_date, renewal_quotation_sent_date FROM hospitals WHERE id = ?', [id]);
       

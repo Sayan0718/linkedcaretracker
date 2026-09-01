@@ -112,6 +112,19 @@ export default function HospitalsPage() {
     }
   };
 
+  const handleDateChange = async (hospitalId: number, field: string, value: string) => {
+    setHospitals(prev => prev.map(h => h.id === hospitalId ? { ...h, [field]: value } : h));
+    try {
+      await fetch(`/api/hospitals/${hospitalId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value, skip_renewal_history: true })
+      });
+    } catch (error) {
+      console.error('Error updating date:', error);
+    }
+  };
+
   const handleAddHospital = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName) return;
@@ -606,10 +619,30 @@ export default function HospitalsPage() {
                       </td>
                       
                       <td>
-                        {h.starting_date ? new Date(h.starting_date).toLocaleDateString() : 'N/A'}
+                        {(userRole === 'admin' || userRole === 'editor') ? (
+                          <input 
+                            type="date" 
+                            className="form-input" 
+                            style={{ padding: '2px 4px', fontSize: '0.85rem' }}
+                            value={h.starting_date?.split('T')[0] || ''} 
+                            onChange={(e) => handleDateChange(h.id, 'starting_date', e.target.value)} 
+                          />
+                        ) : (
+                          h.starting_date ? new Date(h.starting_date).toLocaleDateString() : 'N/A'
+                        )}
                       </td>
                       <td>
-                        {h.subscribed_till ? new Date(h.subscribed_till).toLocaleDateString() : 'N/A'}
+                        {(userRole === 'admin' || userRole === 'editor') ? (
+                          <input 
+                            type="date" 
+                            className="form-input" 
+                            style={{ padding: '2px 4px', fontSize: '0.85rem' }}
+                            value={h.subscribed_till?.split('T')[0] || ''} 
+                            onChange={(e) => handleDateChange(h.id, 'subscribed_till', e.target.value)} 
+                          />
+                        ) : (
+                          h.subscribed_till ? new Date(h.subscribed_till).toLocaleDateString() : 'N/A'
+                        )}
                       </td>
 
                       <td>
@@ -695,7 +728,19 @@ export default function HospitalsPage() {
                     <tr key={h.id}>
                       <td style={{ fontWeight: 600 }}>{h.name}</td>
                       <td>{h.handled_by || 'N/A'}</td>
-                      <td>{h.starting_date ? new Date(h.starting_date).toLocaleDateString() : 'N/A'}</td>
+                      <td>
+                        {(userRole === 'admin' || userRole === 'editor') ? (
+                          <input 
+                            type="date" 
+                            className="form-input" 
+                            style={{ padding: '2px 4px', fontSize: '0.85rem' }}
+                            value={h.starting_date?.split('T')[0] || ''} 
+                            onChange={(e) => handleDateChange(h.id, 'starting_date', e.target.value)} 
+                          />
+                        ) : (
+                          h.starting_date ? new Date(h.starting_date).toLocaleDateString() : 'N/A'
+                        )}
+                      </td>
                       <td>{h.deboard_date ? new Date(h.deboard_date).toLocaleDateString() : 'N/A'}</td>
                       <td style={{ maxWidth: '300px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                         {h.deboard_reason || 'No reason provided'}
