@@ -37,6 +37,7 @@ export default function HospitalsPage() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('viewer');
   const [searchQuery, setSearchQuery] = useState('');
+  const [handledByFilter, setHandledByFilter] = useState('All');
   const [activeTab, setActiveTab] = useState<'active' | 'deboarded'>('active');
   
   const [showAddForm, setShowAddForm] = useState(false);
@@ -272,15 +273,21 @@ export default function HospitalsPage() {
   const activeHospitals = hospitals.filter(h => h.deboarded !== 'YES');
   const deboardedHospitals = hospitals.filter(h => h.deboarded === 'YES');
 
-  const filteredActive = activeHospitals.filter(h => 
-    (h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredActive = activeHospitals
+    .filter(h => 
+      ((h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+       (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (handledByFilter === 'All' || h.handled_by === handledByFilter)
+    )
+    .sort((a, b) => new Date(b.starting_date || 0).getTime() - new Date(a.starting_date || 0).getTime());
 
-  const filteredDeboarded = deboardedHospitals.filter(h => 
-    (h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDeboarded = deboardedHospitals
+    .filter(h => 
+      ((h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+       (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (handledByFilter === 'All' || h.handled_by === handledByFilter)
+    )
+    .sort((a, b) => new Date(b.starting_date || 0).getTime() - new Date(a.starting_date || 0).getTime());
 
   return (
     <div>
@@ -301,6 +308,18 @@ export default function HospitalsPage() {
               style={{ paddingLeft: '38px', width: '250px' }}
             />
           </div>
+          <select
+            className="form-select"
+            value={handledByFilter}
+            onChange={(e) => setHandledByFilter(e.target.value)}
+            style={{ width: '150px' }}
+          >
+            <option value="All">All Persons</option>
+            <option value="Sayan">Sayan</option>
+            <option value="Avnish">Avnish</option>
+            <option value="Monishkka">Monishkka</option>
+            <option value="Dharmik">Dharmik</option>
+          </select>
           {userRole !== 'viewer' && (
             <button className="btn btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
               <Plus size={18} /> Add Hospital
