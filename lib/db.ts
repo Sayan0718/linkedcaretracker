@@ -69,6 +69,9 @@ export async function openDb() {
     CREATE TABLE IF NOT EXISTS hospitals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      street TEXT,
+      state TEXT,
+      city TEXT,
       starting_date TEXT,
       subscribed_till TEXT,
       handled_by TEXT,

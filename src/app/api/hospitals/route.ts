@@ -16,7 +16,7 @@ export async function GET() {
 
   export async function POST(request: Request) {
     try {
-      const { name, starting_date, subscribed_till, handled_by } = await request.json();
+      const { name, street, state, city, starting_date, subscribed_till, handled_by } = await request.json();
       if (!name) {
         return NextResponse.json({ error: 'Hospital name is required' }, { status: 400 });
       }
@@ -24,10 +24,10 @@ export async function GET() {
       const db = await openDb();
       const result = await db.run(
         `INSERT INTO hospitals (
-          name, starting_date, subscribed_till, handled_by, software_linkage, backend_setup, 
+          name, street, state, city, starting_date, subscribed_till, handled_by, software_linkage, backend_setup, 
           frontend_setup, training, certificate_of_compliance, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [name, starting_date || '', subscribed_till || '', handled_by || '', 'To do', 'To do', 'To do', 'To do', 'To do', 'Onboarded']
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [name, street || '', state || '', city || '', starting_date || '', subscribed_till || '', handled_by || '', 'To do', 'To do', 'To do', 'To do', 'To do', 'Onboarded']
       );
     
     const userEmail = request.headers.get('x-user-email') || 'unknown';

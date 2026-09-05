@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { Hospital as HospitalIcon, Plus, Save, Edit3, X, Search, UserMinus, RotateCcw, AlertTriangle } from 'lucide-react';
+import { stateCityMap, states } from '../../../lib/geoData';
 
 interface Hospital {
   id: number;
   name: string;
+  street?: string;
+  state?: string;
+  city?: string;
   starting_date?: string;
   subscribed_till: string;
   handled_by: string;
@@ -38,10 +42,14 @@ export default function HospitalsPage() {
   const [userRole, setUserRole] = useState<string>('viewer');
   const [searchQuery, setSearchQuery] = useState('');
   const [handledByFilter, setHandledByFilter] = useState('All');
+  const [stateFilter, setStateFilter] = useState('All');
   const [activeTab, setActiveTab] = useState<'active' | 'deboarded'>('active');
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
+  const [newStreet, setNewStreet] = useState('');
+  const [newState, setNewState] = useState('');
+  const [newCity, setNewCity] = useState('');
   const [newStartingDate, setNewStartingDate] = useState('');
   const [newSubscribedTill, setNewSubscribedTill] = useState('');
   const [newHandledBy, setNewHandledBy] = useState('Sayan');
@@ -135,6 +143,9 @@ export default function HospitalsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newName,
+          street: newStreet,
+          state: newState,
+          city: newCity,
           starting_date: newStartingDate,
           subscribed_till: newSubscribedTill,
           handled_by: newHandledBy
@@ -143,6 +154,9 @@ export default function HospitalsPage() {
       if (res.ok) {
         setShowAddForm(false);
         setNewName('');
+        setNewStreet('');
+        setNewState('');
+        setNewCity('');
         setNewStartingDate('');
         setNewSubscribedTill('');
         fetchHospitals();
@@ -161,6 +175,9 @@ export default function HospitalsPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          street: editingHospital.street,
+          state: editingHospital.state,
+          city: editingHospital.city,
           starting_date: editingHospital.starting_date,
           renewal_quotation_sent: editingHospital.renewal_quotation_sent,
           renewal_quotation_sent_date: editingHospital.renewal_quotation_sent_date,
@@ -277,7 +294,8 @@ export default function HospitalsPage() {
     .filter(h => 
       ((h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
        (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (handledByFilter === 'All' || h.handled_by === handledByFilter)
+      (handledByFilter === 'All' || h.handled_by === handledByFilter) &&
+      (stateFilter === 'All' || h.state === stateFilter)
     )
     .sort((a, b) => new Date(b.starting_date || 0).getTime() - new Date(a.starting_date || 0).getTime());
 
@@ -285,7 +303,8 @@ export default function HospitalsPage() {
     .filter(h => 
       ((h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
        (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (handledByFilter === 'All' || h.handled_by === handledByFilter)
+      (handledByFilter === 'All' || h.handled_by === handledByFilter) &&
+      (stateFilter === 'All' || h.state === stateFilter)
     )
     .sort((a, b) => new Date(b.starting_date || 0).getTime() - new Date(a.starting_date || 0).getTime());
 
@@ -320,6 +339,17 @@ export default function HospitalsPage() {
             <option value="Monishkka">Monishkka</option>
             <option value="Dharmik">Dharmik</option>
           </select>
+          <select
+            className="form-select"
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            style={{ width: '150px' }}
+          >
+            <option value="All">All States</option>
+            {states.map(st => (
+              <option key={st} value={st}>{st}</option>
+            ))}
+          </select>
           {userRole !== 'viewer' && (
             <button className="btn btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
               <Plus size={18} /> Add Hospital
@@ -332,10 +362,34 @@ export default function HospitalsPage() {
         <div className="card mb-4" style={{ backgroundColor: 'var(--background)' }}>
           <h3 style={{ marginBottom: '16px' }}>Add New Hospital</h3>
           <form onSubmit={handleAddHospital} className="grid grid-cols-4 gap-4">
-            <div className="form-group">
+            <div className="form-group" style={{ gridColumn: 'span 4' }}>
               <label className="form-label">Hospital Name</label>
               <input className="form-input" value={newName} onChange={e => setNewName(e.target.value)} required />
             </div>
+            
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label">Street / Local Address</label>
+              <input className="form-input" value={newStreet} onChange={e => setNewStreet(e.target.value)} placeholder="e.g. Ring Road" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">State</label>
+              <select className="form-select" value={newState} onChange={e => { setNewState(e.target.value); setNewCity(''); }}>
+                <option value="">Select State</option>
+                {states.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">City/District</label>
+              <select className="form-select" value={newCity} onChange={e => setNewCity(e.target.value)} disabled={!newState}>
+                <option value="">Select City</option>
+                {newState && stateCityMap[newState] && stateCityMap[newState].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Starting Date</label>
               <input type="date" className="form-input" value={newStartingDate} onChange={e => setNewStartingDate(e.target.value)} />
@@ -362,12 +416,12 @@ export default function HospitalsPage() {
         </div>
       )}
 
-      {/* Renewal Settings Modal */}
+      {/* Hospital Settings Modal */}
       {editingHospital && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setEditingHospital(null) }} style={{ animation: 'fadeIn 0.2s ease-out' }}>
           <div className="modal-content" style={{ animation: 'slideUp 0.3s ease-out' }}>
             <div className="modal-header">
-              <h3>Renewal Settings: {editingHospital.name}</h3>
+              <h3>Hospital Settings: {editingHospital.name}</h3>
               <button className="modal-close" onClick={() => setEditingHospital(null)}>
                 <X size={20} />
               </button>
@@ -375,6 +429,35 @@ export default function HospitalsPage() {
             
             <div className="modal-body">
               <form onSubmit={handleSaveRenewal}>
+                <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+                  <h4 style={{ marginBottom: '12px', color: 'var(--text-muted)' }}>Address Information</h4>
+                  <div className="form-group">
+                    <label className="form-label">Street / Local Address</label>
+                    <input className="form-input" value={editingHospital.street || ''} onChange={e => setEditingHospital({...editingHospital, street: e.target.value})} placeholder="e.g. Ring Road" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group">
+                      <label className="form-label">State</label>
+                      <select className="form-select" value={editingHospital.state || ''} onChange={e => setEditingHospital({...editingHospital, state: e.target.value, city: ''})}>
+                        <option value="">Select State</option>
+                        {states.map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">City/District</label>
+                      <select className="form-select" value={editingHospital.city || ''} onChange={e => setEditingHospital({...editingHospital, city: e.target.value})} disabled={!editingHospital.state}>
+                        <option value="">Select City</option>
+                        {editingHospital.state && stateCityMap[editingHospital.state] && stateCityMap[editingHospital.state].map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <h4 style={{ marginBottom: '12px', color: 'var(--text-muted)' }}>Renewal Information</h4>
                 <div className="form-group">
                   <label className="form-label">Renewal Quote Sent?</label>
                   <select className="form-select" 
@@ -692,9 +775,9 @@ export default function HospitalsPage() {
                             <button 
                               className="btn btn-secondary" 
                               onClick={() => setEditingHospital(h)}
-                              title="Edit Renewal Settings"
+                              title="Edit Hospital Settings"
                             >
-                              <Edit3 size={16} /> Renewals
+                              <Edit3 size={16} /> Settings
                             </button>
                           )}
                           {userRole === 'admin' && (
