@@ -43,8 +43,15 @@ export default function HospitalsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [handledByFilter, setHandledByFilter] = useState('All');
   const [stateFilter, setStateFilter] = useState('All');
+  const [cityFilter, setCityFilter] = useState('All');
   const [activeTab, setActiveTab] = useState<'active' | 'deboarded'>('active');
-  
+
+  const getCitiesForState = (stateName: string) => {
+    if (!stateName) return [];
+    const staticCities = stateCityMap[stateName] || [];
+    const dbCities = hospitals.filter(h => h.state === stateName && h.city).map(h => h.city as string);
+    return Array.from(new Set([...staticCities, ...dbCities])).sort();
+  };
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newStreet, setNewStreet] = useState('');
@@ -295,7 +302,8 @@ export default function HospitalsPage() {
       ((h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
        (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
       (handledByFilter === 'All' || h.handled_by === handledByFilter) &&
-      (stateFilter === 'All' || h.state === stateFilter)
+      (stateFilter === 'All' || h.state === stateFilter) &&
+      (cityFilter === 'All' || h.city === cityFilter)
     )
     .sort((a, b) => new Date(b.starting_date || 0).getTime() - new Date(a.starting_date || 0).getTime());
 
@@ -304,7 +312,8 @@ export default function HospitalsPage() {
       ((h.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
        (h.handled_by || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
       (handledByFilter === 'All' || h.handled_by === handledByFilter) &&
-      (stateFilter === 'All' || h.state === stateFilter)
+      (stateFilter === 'All' || h.state === stateFilter) &&
+      (cityFilter === 'All' || h.city === cityFilter)
     )
     .sort((a, b) => new Date(b.starting_date || 0).getTime() - new Date(a.starting_date || 0).getTime());
 
@@ -342,12 +351,24 @@ export default function HospitalsPage() {
           <select
             className="form-select"
             value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
+            onChange={(e) => { setStateFilter(e.target.value); setCityFilter('All'); }}
             style={{ width: '150px' }}
           >
             <option value="All">All States</option>
             {states.map(st => (
               <option key={st} value={st}>{st}</option>
+            ))}
+          </select>
+          <select
+            className="form-select"
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            style={{ width: '150px' }}
+            disabled={stateFilter === 'All'}
+          >
+            <option value="All">All Cities</option>
+            {stateFilter !== 'All' && getCitiesForState(stateFilter).map(c => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
           {userRole !== 'viewer' && (
@@ -382,12 +403,19 @@ export default function HospitalsPage() {
             </div>
             <div className="form-group">
               <label className="form-label">City/District</label>
-              <select className="form-select" value={newCity} onChange={e => setNewCity(e.target.value)} disabled={!newState}>
-                <option value="">Select City</option>
-                {newState && stateCityMap[newState] && stateCityMap[newState].map(c => (
-                  <option key={c} value={c}>{c}</option>
+              <input 
+                className="form-input" 
+                list="add-city-list"
+                value={newCity} 
+                onChange={e => setNewCity(e.target.value)} 
+                disabled={!newState}
+                placeholder="Type or select city"
+              />
+              <datalist id="add-city-list">
+                {newState && getCitiesForState(newState).map(c => (
+                  <option key={c} value={c} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div className="form-group">
@@ -447,12 +475,19 @@ export default function HospitalsPage() {
                     </div>
                     <div className="form-group">
                       <label className="form-label">City/District</label>
-                      <select className="form-select" value={editingHospital.city || ''} onChange={e => setEditingHospital({...editingHospital, city: e.target.value})} disabled={!editingHospital.state}>
-                        <option value="">Select City</option>
-                        {editingHospital.state && stateCityMap[editingHospital.state] && stateCityMap[editingHospital.state].map(c => (
-                          <option key={c} value={c}>{c}</option>
+                      <input 
+                        className="form-input"
+                        list="edit-city-list"
+                        value={editingHospital.city || ''} 
+                        onChange={e => setEditingHospital({...editingHospital, city: e.target.value})} 
+                        disabled={!editingHospital.state}
+                        placeholder="Type or select city"
+                      />
+                      <datalist id="edit-city-list">
+                        {editingHospital.state && getCitiesForState(editingHospital.state).map(c => (
+                          <option key={c} value={c} />
                         ))}
-                      </select>
+                      </datalist>
                     </div>
                   </div>
                 </div>
