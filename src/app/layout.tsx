@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Activity, Hospital, MessageSquare, AlertTriangle, BarChart2 } from 'lucide-react'
+import { Activity, Hospital, MessageSquare, AlertTriangle, BarChart2, Calendar } from 'lucide-react'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
@@ -21,11 +21,23 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('session')
-  const session = sessionCookie ? await verifySession(sessionCookie.value) : null
+  const reqHeaders = await headers();
+  const currentPath = reqHeaders.get('x-invoke-path') || '';
 
-  // If no session (e.g. login page), don't render sidebar
+  if (currentPath === '/login') {
+    return (
+      <html lang="en" className={inter.className}>
+        <body>
+          {children}
+        </body>
+      </html>
+    )
+  }
+
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('session')?.value;
+  const session = sessionToken ? await verifySession(sessionToken) : null;
+
   if (!session) {
     return (
       <html lang="en" className={inter.className}>
@@ -60,6 +72,10 @@ export default async function RootLayout({
               <Link href="/discussions" className="nav-item">
                 <MessageSquare size={18} strokeWidth={2} />
                 <span>Discussions</span>
+              </Link>
+              <Link href="/calendar" className="nav-item">
+                <Calendar size={18} strokeWidth={2} />
+                <span>Calendar</span>
               </Link>
               <Link href="/renewals" className="nav-item">
                 <AlertTriangle size={18} strokeWidth={2} />

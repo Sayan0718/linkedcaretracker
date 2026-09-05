@@ -117,6 +117,12 @@ export async function openDb() {
       details TEXT,
       timestamp TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS calendar_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_date TEXT NOT NULL,
+      title TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
   `);
   
   return db;
