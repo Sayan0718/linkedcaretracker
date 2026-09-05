@@ -12,6 +12,7 @@ interface DashboardData {
   activitiesByPerson: { name: string, value: number }[];
   hospitalStages: { name: string, value: number }[];
   hospitalsByPerson: { name: string, count: number }[];
+  hospitalsByState: { name: string, count: number }[];
 }
 
 interface HospitalDetail {
@@ -304,6 +305,33 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+      </div>
+
+      <div className="grid gap-4" style={{ gridTemplateColumns: '1fr', marginTop: '16px' }}>
+        <div className="card">
+          <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', fontWeight: 600 }}>Hospitals by State</h3>
+          <div style={{ width: '100%', height: 350 }}>
+            <ResponsiveContainer>
+              <BarChart
+                data={data.hospitalsByState}
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} tickMargin={10} angle={-45} textAnchor="end" />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }} 
+                />
+                <Bar dataKey="count" name="Hospitals" radius={[4, 4, 0, 0]}>
+                  {data.hospitalsByState?.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   );

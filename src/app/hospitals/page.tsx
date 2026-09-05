@@ -721,6 +721,7 @@ export default function HospitalsPage() {
               <thead style={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
                 <tr>
                   <th>Hospital Name</th>
+                  <th>Address</th>
                   <th>Starting Date</th>
                   <th>Subscribed Till</th>
                   <th>Stages (SW / BE / FE / TR / CC)</th>
@@ -762,7 +763,9 @@ export default function HospitalsPage() {
                           </select>
                         </div>
                       </td>
-                      
+                      <td style={{ maxWidth: '200px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {[h.street, h.city, h.state].filter(Boolean).join(', ') || 'No address'}
+                      </td>
                       <td>
                         {(userRole === 'admin' || userRole === 'editor') ? (
                           <input 
@@ -854,6 +857,7 @@ export default function HospitalsPage() {
               <thead style={{ backgroundColor: 'rgba(239,68,68,0.05)' }}>
                 <tr>
                   <th>Hospital Name</th>
+                  <th>Address</th>
                   <th>Handled By</th>
                   <th>Starting Date</th>
                   <th>Deboarded On</th>
@@ -864,7 +868,7 @@ export default function HospitalsPage() {
               <tbody>
                 {filteredDeboarded.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
                       No deboarded hospitals.
                     </td>
                   </tr>
@@ -872,6 +876,9 @@ export default function HospitalsPage() {
                   filteredDeboarded.map(h => (
                     <tr key={h.id}>
                       <td style={{ fontWeight: 600 }}>{h.name}</td>
+                      <td style={{ maxWidth: '200px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {[h.street, h.city, h.state].filter(Boolean).join(', ') || 'No address'}
+                      </td>
                       <td>{h.handled_by || 'N/A'}</td>
                       <td>
                         {(userRole === 'admin' || userRole === 'editor') ? (

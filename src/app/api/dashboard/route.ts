@@ -66,6 +66,15 @@ export async function GET() {
       count: d.count
     }));
 
+    // Hospitals by State
+    const hospitalsByStateData = await database.all(
+      'SELECT state, COUNT(*) as count FROM hospitals WHERE state IS NOT NULL AND state != \'\' AND (deboarded != \'YES\' OR deboarded IS NULL) GROUP BY state ORDER BY count DESC'
+    );
+    const hospitalsByState = hospitalsByStateData.map((d: any) => ({
+      name: d.state,
+      count: d.count
+    }));
+
     return NextResponse.json({
       totalHospitals,
       totalActivities,
@@ -73,7 +82,8 @@ export async function GET() {
       expiringSoonCount,
       activitiesByPerson,
       hospitalStages,
-      hospitalsByPerson
+      hospitalsByPerson,
+      hospitalsByState
     });
 
   } catch (error) {
