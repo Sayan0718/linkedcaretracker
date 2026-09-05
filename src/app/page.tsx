@@ -30,31 +30,39 @@ export default function ActivityLogPage() {
   const [modalPassword, setModalPassword] = useState('');
 
   const [userRole, setUserRole] = useState('viewer');
+  const [loggedInPerson, setLoggedInPerson] = useState<string | null>(null);
 
   const persons = ['Sayan', 'Avnish', 'Monishkka', 'Dharmik'];
 
   useEffect(() => {
     const init = async () => {
+      let matchedPerson: string | null = null;
       try {
         const userRes = await fetch('/api/auth/me');
         if (userRes.ok) {
           const userData = await userRes.json();
           setUserRole(userData.user?.role || 'viewer');
+          const email = userData.user?.email || '';
+          matchedPerson = persons.find(p => email.toLowerCase().includes(p.toLowerCase())) || null;
+          if (matchedPerson) {
+            setLoggedInPerson(matchedPerson);
+          }
         }
       } catch (e) {}
       await fetchActivities();
-      resetForm();
+      resetForm(matchedPerson);
     };
     init();
   }, []);
 
-  const resetForm = () => {
+  const resetForm = (forcePerson?: string | null) => {
     setEditingId(null);
     setAdminPassword('');
     const today = new Date().toISOString().split('T')[0];
     setDate(today);
     setDescription('');
-    setPerson('Sayan');
+    // Use forced person from init, or current loggedInPerson, or fallback
+    setPerson(forcePerson || loggedInPerson || 'Sayan');
   };
 
   const fetchActivities = async () => {
@@ -280,7 +288,13 @@ export default function ActivityLogPage() {
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <User size={16} /> Person
               </label>
-              <select className="form-select" value={person} onChange={(e) => setPerson(e.target.value)}>
+              <select 
+                className="form-select" 
+                value={person} 
+                onChange={(e) => setPerson(e.target.value)}
+                disabled={loggedInPerson !== null}
+                title={loggedInPerson !== null ? "You can only log activities for yourself" : ""}
+              >
                 {persons.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
