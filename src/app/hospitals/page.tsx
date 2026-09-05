@@ -167,9 +167,13 @@ export default function HospitalsPage() {
         setNewStartingDate('');
         setNewSubscribedTill('');
         fetchHospitals();
+      } else {
+        const data = await res.json();
+        alert(`Failed to add hospital: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error adding hospital:', error);
+      alert('Network error while adding hospital.');
     }
   };
 
@@ -197,9 +201,13 @@ export default function HospitalsPage() {
       if (res.ok) {
         setEditingHospital(null);
         fetchHospitals();
+      } else {
+        const data = await res.json();
+        alert(`Failed to save changes: ${data.error || 'Unknown error'}. If you just added new fields, please run the migration script first.`);
       }
     } catch (error) {
       console.error('Error saving renewal:', error);
+      alert('Network error while saving changes.');
     }
   };
 
@@ -455,7 +463,7 @@ export default function HospitalsPage() {
               </button>
             </div>
             
-            <div className="modal-body">
+            <div className="modal-body" style={{ maxHeight: '75vh', overflowY: 'auto', paddingRight: '10px' }}>
               <form onSubmit={handleSaveRenewal}>
                 <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
                   <h4 style={{ marginBottom: '12px', color: 'var(--text-muted)' }}>Address Information</h4>
