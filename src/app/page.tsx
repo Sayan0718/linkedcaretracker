@@ -270,7 +270,7 @@ export default function ActivityLogPage() {
                 </button>
               )}
               {editingId && (
-                <button onClick={resetForm} className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', background: 'transparent', color: 'var(--text-muted)' }}>
+                <button onClick={() => resetForm()} className="btn" style={{ padding: '4px 8px', fontSize: '0.8rem', background: 'transparent', color: 'var(--text-muted)' }}>
                   <X size={16} /> Cancel
                 </button>
               )}
