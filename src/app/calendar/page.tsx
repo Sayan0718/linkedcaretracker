@@ -81,6 +81,21 @@ export default function CalendarPage() {
   ];
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+  // Group events by year, then sort each group by date
+  const groupedEvents = events.reduce((acc, evt) => {
+    const evtYear = new Date(evt.event_date).getFullYear().toString();
+    if (!acc[evtYear]) acc[evtYear] = [];
+    acc[evtYear].push(evt);
+    return acc;
+  }, {} as Record<string, CalendarEvent[]>);
+
+  // Sort years descending (newest year first)
+  const sortedYears = Object.keys(groupedEvents).sort((a, b) => parseInt(b) - parseInt(a));
+  // Sort events within each year ascending
+  sortedYears.forEach(y => {
+    groupedEvents[y].sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+  });
+
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEventTitle || !selectedDate) return;
@@ -129,8 +144,8 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '24px' }}>
-      <div className="page-header" style={{ marginBottom: '16px' }}>
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', padding: '24px', gap: '24px' }}>
+      <div className="page-header" style={{ marginBottom: '0px' }}>
         <div>
           <h1 className="page-title"><CalendarIcon size={24} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Calendar</h1>
           <p className="page-subtitle">Track holidays and events</p>
@@ -152,7 +167,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="card" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="card" style={{ minHeight: '600px', flex: 1, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Days Header */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
           {dayNames.map(day => (
@@ -247,6 +262,46 @@ export default function CalendarPage() {
           })}
         </div>
       </div>
+
+      <div className="card" style={{ padding: '24px' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          All Events
+        </h2>
+        
+        {sortedYears.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>No events added yet.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {sortedYears.map(yr => (
+              <div key={yr}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--primary)', borderBottom: '2px solid var(--border)', paddingBottom: '8px', marginBottom: '16px' }}>
+                  {yr}
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
+                  {groupedEvents[yr].map(evt => (
+                    <div key={evt.id} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'var(--background)' }}>
+                      <div style={{ fontWeight: 600 }}>{evt.title}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        {new Date(evt.event_date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </div>
+                      {userRole !== 'viewer' && (
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ marginTop: '8px', padding: '4px 8px', fontSize: '0.8rem', alignSelf: 'flex-start' }}
+                          onClick={() => handleDeleteEvent(evt.id)}
+                        >
+                          <Trash2 size={14} style={{ marginRight: '4px' }} /> Delete
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
 
       {showAddModal && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAddModal(false) }}>
