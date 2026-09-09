@@ -242,8 +242,8 @@ export default function CalendarPage() {
                       key={evt.id} 
                       className="event-badge"
                       style={{ 
-                        backgroundColor: evt.type === 'roster' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
-                        color: evt.type === 'roster' ? '#ef4444' : '#10b981', 
+                        backgroundColor: evt.type === 'roster' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                        color: evt.type === 'roster' ? '#3b82f6' : '#10b981', 
                         padding: '4px 6px', 
                         borderRadius: '4px', 
                         fontSize: '0.75rem', 
