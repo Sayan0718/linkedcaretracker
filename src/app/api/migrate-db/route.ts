@@ -18,7 +18,8 @@ export async function GET() {
       "ALTER TABLE hospitals ADD COLUMN city TEXT",
       "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT NOT NULL)",
       "CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_email TEXT NOT NULL, action TEXT NOT NULL, details TEXT, timestamp TEXT NOT NULL)",
-      "CREATE TABLE IF NOT EXISTS calendar_events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_date TEXT NOT NULL, title TEXT NOT NULL, created_at TEXT NOT NULL)"
+      "CREATE TABLE IF NOT EXISTS calendar_events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_date TEXT NOT NULL, title TEXT NOT NULL, type TEXT DEFAULT 'event', created_at TEXT NOT NULL)",
+      "ALTER TABLE calendar_events ADD COLUMN type TEXT DEFAULT 'event'"
     ];
 
     const results = [];

@@ -121,6 +121,7 @@ export async function openDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       event_date TEXT NOT NULL,
       title TEXT NOT NULL,
+      type TEXT DEFAULT 'event',
       created_at TEXT NOT NULL
     );
   `);

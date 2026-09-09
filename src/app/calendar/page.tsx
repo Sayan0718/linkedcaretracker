@@ -7,6 +7,7 @@ interface CalendarEvent {
   id: number;
   event_date: string;
   title: string;
+  type?: string;
   created_at: string;
 }
 
@@ -17,7 +18,9 @@ export default function CalendarPage() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [eventType, setEventType] = useState<'event' | 'roster'>('event');
   const [newEventTitle, setNewEventTitle] = useState('');
+  const [rosterName, setRosterName] = useState('Sayan');
 
   const [userRole, setUserRole] = useState('viewer');
 
@@ -81,8 +84,8 @@ export default function CalendarPage() {
   ];
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Group events by year, then sort each group by date
-  const groupedEvents = events.reduce((acc, evt) => {
+  // Group events by year, then sort each group by date (excluding rosters)
+  const groupedEvents = events.filter(e => e.type !== 'roster').reduce((acc, evt) => {
     const evtYear = new Date(evt.event_date).getFullYear().toString();
     if (!acc[evtYear]) acc[evtYear] = [];
     acc[evtYear].push(evt);
@@ -98,18 +101,28 @@ export default function CalendarPage() {
 
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEventTitle || !selectedDate) return;
+    if (!selectedDate) return;
+
+    let finalTitle = newEventTitle;
+    if (eventType === 'roster') {
+      const dateObj = new Date(selectedDate);
+      const dayName = dayNames[dateObj.getDay()];
+      finalTitle = `${rosterName}'s ${dayName}`;
+    } else if (!newEventTitle) {
+      return;
+    }
 
     try {
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_date: selectedDate, title: newEventTitle })
+        body: JSON.stringify({ event_date: selectedDate, title: finalTitle, type: eventType })
       });
 
       if (res.ok) {
         setShowAddModal(false);
         setNewEventTitle('');
+        setEventType('event');
         fetchEvents();
       } else {
         const data = await res.json();
@@ -229,8 +242,8 @@ export default function CalendarPage() {
                       key={evt.id} 
                       className="event-badge"
                       style={{ 
-                        backgroundColor: 'var(--primary-light)', 
-                        color: 'var(--primary)', 
+                        backgroundColor: evt.type === 'roster' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                        color: evt.type === 'roster' ? '#ef4444' : '#10b981', 
                         padding: '4px 6px', 
                         borderRadius: '4px', 
                         fontSize: '0.75rem', 
@@ -246,7 +259,7 @@ export default function CalendarPage() {
                       {userRole !== 'viewer' && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }}
-                          style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', opacity: 0.7 }}
+                          style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', opacity: 0.7 }}
                           title="Delete Event"
                           onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
                           onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
@@ -317,16 +330,35 @@ export default function CalendarPage() {
             <div className="modal-body">
               <form onSubmit={handleAddEvent}>
                 <div className="form-group">
+                  <label className="form-label">Type</label>
+                  <select className="form-input" value={eventType} onChange={e => setEventType(e.target.value as 'event' | 'roster')}>
+                    <option value="event">Holiday / Event</option>
+                    <option value="roster">Roster</option>
+                  </select>
+                </div>
+                <div className="form-group">
                   <label className="form-label">Date</label>
                   <input type="date" className="form-input" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} required />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Event/Holiday Title</label>
-                  <input type="text" className="form-input" value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} placeholder="E.g., Diwali, Team Offsite, etc." required autoFocus />
-                </div>
+                {eventType === 'roster' ? (
+                  <div className="form-group">
+                    <label className="form-label">Person</label>
+                    <select className="form-input" value={rosterName} onChange={e => setRosterName(e.target.value)}>
+                      <option value="Sayan">Sayan</option>
+                      <option value="Avnish">Avnish</option>
+                      <option value="Monishkka">Monishkka</option>
+                      <option value="Dharmik">Dharmik</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label className="form-label">Event/Holiday Title</label>
+                    <input type="text" className="form-input" value={newEventTitle} onChange={e => setNewEventTitle(e.target.value)} placeholder="E.g., Diwali, Team Offsite, etc." required autoFocus />
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                   <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary">Save Event</button>
+                  <button type="submit" className="btn btn-primary">Save {eventType === 'roster' ? 'Roster' : 'Event'}</button>
                 </div>
               </form>
             </div>
